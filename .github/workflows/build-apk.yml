@@ -41,7 +41,7 @@ jobs:
 
       - name: Point Bubblewrap to JDK & Android SDK
         working-directory: android-twa
-        run: bubblewrap updateConfig --jdkPath="$JAVA_HOME" --androidSdkPath="$ANDROID_HOME"
+        run: echo "no" | bubblewrap updateConfig --jdkPath="$JAVA_HOME" --androidSdkPath="$ANDROID_HOME"
 
       - name: Generate Android project from manifest
         working-directory: android-twa
