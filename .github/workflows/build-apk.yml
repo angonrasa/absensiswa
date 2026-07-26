@@ -51,7 +51,7 @@ jobs:
 
       - name: Generate Android project from manifest
         working-directory: android-twa
-        run: bubblewrap update
+        run: bubblewrap update --skipVersionUpgrade
 
       - name: Build signed APK
         working-directory: android-twa
