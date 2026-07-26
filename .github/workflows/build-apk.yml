@@ -40,8 +40,14 @@ jobs:
         run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > android-twa/android.keystore
 
       - name: Point Bubblewrap to JDK & Android SDK
-        working-directory: android-twa
-        run: echo "no" | bubblewrap updateConfig --jdkPath="$JAVA_HOME" --androidSdkPath="$ANDROID_HOME"
+        run: |
+          mkdir -p ~/.bubblewrap
+          cat > ~/.bubblewrap/config.json << CFGEOF
+          {
+            "jdkPath": "$JAVA_HOME",
+            "androidSdkPath": "$ANDROID_HOME"
+          }
+          CFGEOF
 
       - name: Generate Android project from manifest
         working-directory: android-twa
