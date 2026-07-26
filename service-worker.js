@@ -1,4 +1,3 @@
-cat > service-worker.js << 'EOF'
 const CACHE_NAME = "absensiswa-cache-v1";
 
 self.addEventListener("install", () => {
@@ -34,4 +33,3 @@ self.addEventListener("fetch", (event) => {
     })
   );
 });
-EOF
