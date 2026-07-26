@@ -24,7 +24,7 @@ Project ini pakai ES Modules, jadi tidak bisa dibuka langsung lewat `file://` â€
 
 ```bash
 git clone <url-repo-ini>
-cd teacher-attendance-companion
+cd absensiswa
 python3 -m http.server 8000
 ```
 
