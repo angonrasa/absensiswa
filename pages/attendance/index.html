@@ -8,9 +8,18 @@
   <link rel="stylesheet" href="../../src/styles/base.css" />
   <link rel="stylesheet" href="../../src/components/components.css" />
   <link rel="stylesheet" href="./attendance.css" />
+  <link rel="manifest" href="../../manifest.json" />
+  <meta name="theme-color" content="#0d9488" />
 </head>
 <body>
   <div id="app"></div>
   <script type="module" src="./attendance.js"></script>
+  <script>
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("../../service-worker.js");
+      });
+    }
+  </script>
 </body>
 </html>
