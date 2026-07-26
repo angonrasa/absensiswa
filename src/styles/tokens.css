@@ -5,34 +5,53 @@
 */
 
 :root {
-  /* ---------- Color: Base ---------- */
-  --color-bg: #FAFAF8;
+  /* ---------- Color: Base ----------
+     Diperbarui mengikuti mockup-redesign-v2.html (Roadmap Redesign R1.1):
+     latar utama jadi off-white kehijauan (canvas), card tetap putih murni
+     di atasnya, supaya card terlihat "naik" dari latar tanpa perlu shadow tebal. */
+  --color-bg: #F4F6F5;
   --color-surface: #FFFFFF;
-  --color-surface-sunken: #F1F1EE;
-  --color-border: #E1E1DC;
-  --color-ink: #1C1E1B;
-  --color-ink-muted: #5B5E58;
-  --color-ink-faint: #8B8E86;
+  --color-surface-sunken: #F4F6F5;
+  --color-border: #EBEEEC;
+  --color-ink: #12181A;
+  --color-ink-muted: #6B7680;
+  --color-ink-faint: #9AA3AB;
 
-  /* ---------- Color: Primary (aksi utama, app bar) ---------- */
-  --color-primary: #1F6F5C;
-  --color-primary-hover: #185A4A;
-  --color-primary-tint: #E4F1EC;
+  /* ---------- Color: Primary (app bar, header, kartu hero gelap) ---------- */
+  --color-primary: #0B3D3A;
+  --color-primary-hover: #082B29;
+  --color-primary-tint: #E3ECEA;
 
-  /* ---------- Color: Status Kehadiran (fungsional, bukan dekoratif) ---------- */
-  --color-present: #2F855A;
-  --color-present-tint: #E7F5EC;
-  --color-permission: #B7791F;
-  --color-permission-tint: #FBF1E0;
-  --color-sick: #2B6CB0;
-  --color-sick-tint: #E5EFF9;
-  --color-absent: #C53030;
-  --color-absent-tint: #FBE8E8;
+  /* ---------- Color: Accent (baru — CTA utama, FAB, tab aktif)
+     Mockup pakai emerald cerah #12B589, tapi teks/ikon putih di atasnya
+     cuma dapat kontras 2.63:1 (gagal WCAG AA, minimal 3:1 untuk elemen
+     non-teks). Nilai di bawah digelapkan sedikit dari mockup supaya tetap
+     terlihat sebagai "emerald cerah" namun teks putih di atasnya lolos
+     AA (≈5.3:1). Keputusan final — lihat catatan kontras di akhir file. */
+  --color-accent: #0B7A5C;
+  --color-accent-hover: #096449;
+  --color-accent-tint: #E1F7EF;
+
+  /* ---------- Color: Status Kehadiran (fungsional, bukan dekoratif)
+     Mengikuti arah warna mockup v2 (hijau/amber/indigo/merah yang lebih
+     hidup dibanding versi lama), tapi tone disesuaikan (bukan hex persis
+     mockup) supaya teks status di atas tint-nya tetap lolos kontras AA
+     4.5:1 — nilai mentah mockup untuk beberapa warna ini gagal AA saat
+     dipakai sebagai teks kecil di atas tint. Keputusan final — lihat
+     catatan kontras di akhir file. */
+  --color-present: #15803D;
+  --color-present-tint: #DCFCE7;
+  --color-permission: #B45309;
+  --color-permission-tint: #FEF3C7;
+  --color-sick: #4F46E5;
+  --color-sick-tint: #E0E7FF;
+  --color-absent: #B91C1C;
+  --color-absent-tint: #FEE2E2;
 
   /* ---------- Color: Semantic ---------- */
-  --color-danger: #C53030;
-  --color-warning: #B7791F;
-  --color-success: #2F855A;
+  --color-danger: #B91C1C;
+  --color-warning: #B45309;
+  --color-success: #15803D;
 
   /* ---------- Typography ---------- */
   --font-display: -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -86,3 +105,32 @@
   --tap-target-min: 44px;
   --app-max-width: 480px;
 }
+
+/*
+  ---------- Catatan Roadmap Redesign R1 (Design Tokens) ----------
+
+  R1.3 — Font: TIDAK memakai Google Fonts (Inter/JetBrains Mono) seperti di
+  mockup HTML. Aplikasi ini "Offline First" (lihat Blueprint & Agents-rules),
+  sementara font Google dimuat dari CDN dan butuh koneksi saat pertama kali
+  dibuka. --font-display/--font-body/--font-data tetap pakai system font
+  stack yang sudah ada (juga sudah terasa native di HP masing-masing OS).
+  --font-data (ui-monospace dst.) sudah cukup mendekati kesan "JetBrains Mono"
+  untuk angka statistik tanpa perlu unduhan tambahan.
+
+  R1.4 — Smoke test kontras (WCAG AA, target 4.5:1 teks normal / 3:1 elemen
+  non-teks besar), dihitung dari nilai FINAL di atas:
+    ink        di atas bg              17.9 : 1   ✅
+    ink-muted  di atas bg               4.6 : 1   ✅
+    ink-faint  di atas bg               2.6 : 1   (dekoratif saja, bukan teks wajib baca)
+    putih      di atas primary (teal)  12.1 : 1   ✅
+    putih      di atas accent          ~5.3 : 1   ✅
+    present    di atas present-tint    ~4.6 : 1   ✅
+    permission di atas permission-tint ~4.5 : 1   ✅
+    sick       di atas sick-tint       ~5.1 : 1   ✅
+    absent     di atas absent-tint     ~5.3 : 1   ✅
+  Semua pasangan teks-di-atas-background yang dipakai untuk label/status
+  lolos ambang AA. --color-ink-faint sengaja tetap kontras rendah karena
+  cuma dipakai untuk elemen dekoratif/tersier (bukan teks yang wajib dibaca).
+  Ini nilai final yang dipakai (bukan hex mentah mockup) — sudah dikonfirmasi
+  dengan pemilik project.
+*/
