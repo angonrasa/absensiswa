@@ -1,7 +1,6 @@
-cat > manifest.json << 'EOF'
 {
-  "name": "Absensi Siswa",
-  "short_name": "Absensisiswa",
+  "name": "Teacher Attendance Companion",
+  "short_name": "Absensi",
   "start_url": "pages/home/index.html",
   "scope": "./",
   "display": "standalone",
@@ -15,4 +14,3 @@ cat > manifest.json << 'EOF'
     { "src": "assets/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
   ]
 }
-EOF
