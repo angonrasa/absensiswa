@@ -4,7 +4,9 @@ import { ClassRepository } from "../../src/modules/class/class.repository.js";
 import { StudentRepository } from "../../src/modules/student/student.repository.js";
 import { AttendanceRepository } from "../../src/modules/attendance/attendance.repository.js";
 import { toDateKey } from "../../src/core/date.js";
-import { AppBar, Card, Badge, FloatingButton } from "../../src/components/components.js";
+import { AppBar, Card, Badge, Button, FloatingButton } from "../../src/components/components.js";
+import { StatCardGroup } from "../../src/components/statRing.js";
+import { computeSetupChecklist } from "../../src/core/setupChecklist.js";
 import { runPage } from "../../src/core/pageState.js";
 import { escapeHtml } from "../../src/core/html.js";
 
@@ -54,25 +56,76 @@ async function computeTodayStats(dateKey, todaysScheduledClassIds) {
   return { totalStudents, hadirHariIni, tidakHadirHariIni, persentase };
 }
 
-function renderStatsStrip(stats) {
-  const grid = document.createElement("div");
-  grid.className = "home-stats-grid";
+/**
+ * Milestone R4.3 — empty state penuh (belum ada kelas sama sekali), menampilkan
+ * stepper 4 langkah, dihitung dari data asli. Karena Student/Schedule berelasi
+ * FK ke Class (lihat 02-Data-Model-Pendamping.md), kalau classCount === 0 maka
+ * studentCount dan scheduleCount pasti juga 0 — tidak perlu query tambahan.
+ */
+function renderSetupEmptyState() {
+  const checklist = computeSetupChecklist({ classCount: 0, studentCount: 0, scheduleCount: 0 });
 
-  const items = [
-    { label: "Total Siswa", value: stats.totalStudents },
-    { label: "Hadir Hari Ini", value: stats.hadirHariIni },
-    { label: "Tidak Hadir", value: stats.tidakHadirHariIni },
-    { label: "% Kehadiran", value: stats.persentase === null ? "-" : `${stats.persentase}%` },
-  ];
+  const wrap = document.createElement("div");
+  wrap.className = "setup-empty";
 
-  items.forEach((item) => {
-    const card = document.createElement("div");
-    card.className = "home-stat-card";
-    card.innerHTML = `<span class="home-stat-card__value">${item.value}</span><span class="home-stat-card__label">${item.label}</span>`;
-    grid.appendChild(card);
+  const icon = document.createElement("div");
+  icon.className = "setup-empty__icon";
+  icon.setAttribute("aria-hidden", "true");
+  icon.textContent = "🏫";
+  wrap.appendChild(icon);
+
+  const title = document.createElement("h3");
+  title.className = "setup-empty__title";
+  title.textContent = "Belum ada kelas untuk diabsen";
+  wrap.appendChild(title);
+
+  const desc = document.createElement("p");
+  desc.className = "setup-empty__desc";
+  desc.textContent =
+    "Tambahkan tahun ajaran, kelas, dan siswa dulu di Data Master. Jadwal hari ini akan muncul otomatis setelah itu.";
+  wrap.appendChild(desc);
+
+  wrap.appendChild(
+    Button({
+      label: "Mulai isi Data Master →",
+      variant: "primary",
+      onClick: () => {
+        window.location.href = "../master-data/index.html";
+      },
+    })
+  );
+
+  const stepper = document.createElement("div");
+  stepper.className = "stepper";
+
+  checklist.forEach((step, index) => {
+    const row = document.createElement("div");
+    row.className = `step-row${step.done ? " step-row--done" : ""}`;
+
+    const chip = document.createElement("div");
+    chip.className = "step-chip";
+    chip.textContent = step.done ? "✓" : String(index + 1);
+    row.appendChild(chip);
+
+    const text = document.createElement("div");
+    text.className = "step-text";
+
+    const t = document.createElement("div");
+    t.className = "step-text__title";
+    t.textContent = step.label;
+    text.appendChild(t);
+
+    const s = document.createElement("div");
+    s.className = "step-text__sub";
+    s.textContent = step.sub;
+    text.appendChild(s);
+
+    row.appendChild(text);
+    stepper.appendChild(row);
   });
 
-  return grid;
+  wrap.appendChild(stepper);
+  return wrap;
 }
 
 async function render() {
@@ -94,11 +147,28 @@ async function render() {
   const today = new Date();
   const dateKey = toDateKey(today);
 
+  // R4.3: belum ada kelas sama sekali -> empty state + stepper (bukan
+  // "Tidak ada jadwal hari ini" biasa, itu untuk kasus data sudah ada tapi
+  // memang tidak ada jadwal hari ini, misal weekend).
+  const classes = await classRepo.getAll();
+  if (classes.length === 0) {
+    main.appendChild(renderSetupEmptyState());
+    app.appendChild(main);
+    return;
+  }
+
   const schedules = await scheduleRepo.getToday(today);
   const todaysScheduledClassIds = new Set(schedules.map((s) => s.classId));
 
   const stats = await computeTodayStats(dateKey, todaysScheduledClassIds);
-  main.appendChild(renderStatsStrip(stats));
+  main.appendChild(
+    StatCardGroup({
+      percent: stats.persentase,
+      hadirHariIni: stats.hadirHariIni,
+      tidakHadir: stats.tidakHadirHariIni,
+      totalSiswa: stats.totalStudents,
+    })
+  );
 
   const heading = document.createElement("h1");
   heading.className = "home-heading";
@@ -125,7 +195,6 @@ async function render() {
     return;
   }
 
-  const classes = await classRepo.getAll();
   const classById = Object.fromEntries(classes.map((c) => [c.id, c]));
 
   const list = document.createElement("div");
@@ -140,16 +209,25 @@ async function render() {
 
     const row = document.createElement("div");
     row.className = "schedule-row";
-    row.innerHTML = `
-      <div class="schedule-time">
-        <span>${escapeHtml(sch.startTime)}</span>
-        <span class="schedule-time__end">${escapeHtml(sch.endTime)}</span>
-      </div>
-      <div class="schedule-main">
-        <span class="schedule-subject">${escapeHtml(sch.subject)}</span>
-        <span class="schedule-class">${cls ? escapeHtml(cls.name) : "Kelas tidak ditemukan"}</span>
-      </div>
-    `;
+
+    const timeEl = document.createElement("div");
+    timeEl.className = "schedule-time";
+    timeEl.innerHTML = `<span>${escapeHtml(sch.startTime)}</span><span class="schedule-time__end">${escapeHtml(
+      sch.endTime
+    )}</span>`;
+    row.appendChild(timeEl);
+
+    const bar = document.createElement("div");
+    bar.className = "schedule-bar";
+    row.appendChild(bar);
+
+    const info = document.createElement("div");
+    info.className = "schedule-main";
+    info.innerHTML = `<span class="schedule-subject">${escapeHtml(sch.subject)}</span><span class="schedule-class">${
+      cls ? escapeHtml(cls.name) : "Kelas tidak ditemukan"
+    }</span>`;
+    row.appendChild(info);
+
     row.appendChild(
       Badge({
         status: session ? "present" : null,

@@ -4,29 +4,6 @@
   margin-bottom: var(--space-1);
 }
 
-.home-stats-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: var(--space-2);
-  margin: var(--space-4) 0 var(--space-6);
-}
-.home-stat-card {
-  text-align: center;
-  padding: var(--space-3) var(--space-1);
-  border-radius: var(--radius-md);
-  background: var(--color-surface-sunken);
-}
-.home-stat-card__value {
-  display: block;
-  font-size: var(--text-lg);
-  font-weight: var(--weight-bold);
-  color: var(--color-primary);
-}
-.home-stat-card__label {
-  font-size: 10px;
-  color: var(--color-ink-muted);
-}
-
 .home-heading {
   margin-bottom: var(--space-5);
 }
@@ -56,6 +33,13 @@
   font-size: var(--text-xs);
   color: var(--color-ink-faint);
   font-weight: var(--weight-regular);
+}
+
+.schedule-bar {
+  width: 3px;
+  align-self: stretch;
+  border-radius: var(--radius-sm);
+  background: var(--color-accent);
 }
 
 .schedule-main {
@@ -96,4 +80,104 @@
   font-size: var(--text-sm);
   font-weight: var(--weight-medium);
   text-decoration: none;
+}
+
+/* Milestone R4.3 — empty state penuh (belum ada kelas sama sekali) + stepper.
+   Checklist-nya (computeSetupChecklist) nanti dipakai ulang oleh layar
+   Welcome/Wizard di R8-R10 — CSS ini kemungkinan ikut dipindah/disatukan
+   saat itu, sengaja belum diekstrak sekarang (YAGNI). */
+.setup-empty {
+  text-align: center;
+  padding: var(--space-6) var(--space-2) var(--space-2);
+}
+.setup-empty__icon {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto var(--space-5);
+  border-radius: var(--radius-lg);
+  background: var(--color-accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--text-xl);
+}
+.setup-empty__title {
+  font-size: var(--text-lg);
+  margin: 0 0 var(--space-2);
+  color: var(--color-ink);
+  font-weight: var(--weight-bold);
+}
+.setup-empty__desc {
+  font-size: var(--text-sm);
+  color: var(--color-ink-muted);
+  line-height: var(--leading-normal);
+  margin: 0 0 var(--space-6);
+  max-width: 270px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.stepper {
+  margin-top: var(--space-8);
+  text-align: left;
+  position: relative;
+  padding-left: var(--space-1);
+}
+.step-row {
+  display: flex;
+  gap: var(--space-3);
+  position: relative;
+  padding-bottom: var(--space-5);
+}
+.step-row:last-child {
+  padding-bottom: 0;
+}
+.step-row::before {
+  content: "";
+  position: absolute;
+  left: 13px;
+  top: 28px;
+  bottom: 0;
+  width: 2px;
+  background: var(--color-border);
+}
+.step-row:last-child::before {
+  display: none;
+}
+.step-row--done::before {
+  background: var(--color-accent);
+}
+.step-chip {
+  flex: 0 0 auto;
+  width: 26px;
+  height: 26px;
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--text-xs);
+  font-weight: var(--weight-bold);
+  background: var(--color-surface);
+  color: var(--color-ink-faint);
+  border: 2px solid var(--color-border);
+  z-index: 1;
+}
+.step-row--done .step-chip {
+  background: var(--color-accent);
+  color: #fff;
+  border-color: var(--color-accent);
+}
+.step-text {
+  padding-top: 2px;
+}
+.step-text__title {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-bold);
+  color: var(--color-ink);
+}
+.step-text__sub {
+  font-size: var(--text-xs);
+  color: var(--color-ink-muted);
+  margin-top: 1px;
+  font-weight: var(--weight-medium);
 }
