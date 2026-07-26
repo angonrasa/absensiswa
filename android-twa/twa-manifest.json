@@ -1,0 +1,26 @@
+{
+  "packageId": "io.github.angonrasa.absensiswa",
+  "host": "angonrasa.github.io",
+  "name": "Teacher Attendance Companion",
+  "launcherName": "Absensi",
+  "display": "standalone",
+  "themeColor": "#0D9488",
+  "themeColorDark": "#0D9488",
+  "navigationColor": "#0D9488",
+  "backgroundColor": "#0D9488",
+  "enableNotifications": false,
+  "startUrl": "/absensiswa/pages/home/index.html",
+  "iconUrl": "https://angonrasa.github.io/absensiswa/assets/icons/icon-512.png",
+  "maskableIconUrl": "https://angonrasa.github.io/absensiswa/assets/icons/icon-512.png",
+  "splashScreenFadeOutDuration": 300,
+  "signingKey": {
+    "path": "./android.keystore",
+    "alias": "absensiswa"
+  },
+  "appVersion": "1.0.0",
+  "appVersionCode": 1,
+  "webManifestUrl": "https://angonrasa.github.io/absensiswa/manifest.json",
+  "fallbackType": "customtabs",
+  "enableSiteSettingsShortcut": true,
+  "orientation": "portrait"
+}
