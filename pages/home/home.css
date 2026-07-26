@@ -1,0 +1,99 @@
+.home-date {
+  color: var(--color-ink-muted);
+  font-size: var(--text-sm);
+  margin-bottom: var(--space-1);
+}
+
+.home-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-2);
+  margin: var(--space-4) 0 var(--space-6);
+}
+.home-stat-card {
+  text-align: center;
+  padding: var(--space-3) var(--space-1);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-sunken);
+}
+.home-stat-card__value {
+  display: block;
+  font-size: var(--text-lg);
+  font-weight: var(--weight-bold);
+  color: var(--color-primary);
+}
+.home-stat-card__label {
+  font-size: 10px;
+  color: var(--color-ink-muted);
+}
+
+.home-heading {
+  margin-bottom: var(--space-5);
+}
+
+.schedule-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.schedule-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.schedule-time {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 56px;
+  font-family: var(--font-data);
+  font-weight: var(--weight-semibold);
+  color: var(--color-primary);
+}
+.schedule-time__end {
+  font-size: var(--text-xs);
+  color: var(--color-ink-faint);
+  font-weight: var(--weight-regular);
+}
+
+.schedule-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.schedule-subject { font-weight: var(--weight-semibold); }
+.schedule-class { font-size: var(--text-sm); color: var(--color-ink-muted); }
+
+.home-nav {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-4);
+  margin-top: var(--space-6);
+  padding: var(--space-4);
+  border-top: 1px solid var(--color-border);
+}
+.home-nav a {
+  color: var(--color-primary);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  text-decoration: none;
+}
+
+.home-empty {
+  text-align: center;
+  padding: var(--space-5) var(--space-4) var(--space-6);
+}
+.home-empty__message {
+  color: var(--color-ink-muted);
+  margin-bottom: var(--space-2);
+}
+.home-empty__link {
+  display: inline-block;
+  color: var(--color-primary);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  text-decoration: none;
+}

@@ -1,0 +1,91 @@
+.tabs {
+  display: flex;
+  gap: var(--space-2);
+  padding: 0 var(--space-4) var(--space-3);
+  overflow-x: auto;
+  border-bottom: 1px solid var(--color-border);
+}
+.tab {
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-full);
+  background: var(--color-surface-sunken);
+  color: var(--color-ink-muted);
+  border: none;
+  font-weight: var(--weight-medium);
+  font-size: var(--text-sm);
+  white-space: nowrap;
+  min-height: var(--tap-target-min);
+}
+.tab--active {
+  background: var(--color-primary);
+  color: #fff;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.search-bar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+.search-bar .field { flex: 1; min-width: 0; }
+
+.list-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+.list-row__main { display: flex; flex-direction: column; gap: 2px; }
+.list-row__title { font-weight: var(--weight-semibold); }
+.student-warning-flag {
+  color: var(--color-absent);
+  font-size: var(--text-sm);
+}
+.list-row__subtitle { font-size: var(--text-sm); color: var(--color-ink-muted); }
+.list-row__actions { display: flex; gap: var(--space-2); }
+
+.icon-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-full);
+  border: none;
+  background: var(--color-surface-sunken);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.icon-btn:hover { background: var(--color-border); }
+
+.empty-state {
+  text-align: center;
+  padding: var(--space-10) var(--space-4);
+  color: var(--color-ink-muted);
+}
+
+.sheet-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.schedule-day-heading {
+  margin: var(--space-5) 0 var(--space-3);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  color: var(--color-ink-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+.schedule-day-heading:first-of-type { margin-top: 0; }
+
+.schedule-day-empty {
+  color: var(--color-ink-faint);
+  font-size: var(--text-sm);
+  margin: 0 0 var(--space-2);
+}

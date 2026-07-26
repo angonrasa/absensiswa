@@ -1,0 +1,107 @@
+.attendance-summary-bar {
+  display: flex;
+  gap: var(--space-2);
+  padding: 0 var(--space-4) var(--space-4);
+  flex-wrap: wrap;
+}
+.summary-pill {
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-full);
+  background: var(--color-surface-sunken);
+  color: var(--color-ink-muted);
+}
+
+.student-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.student-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-2) 0;
+}
+
+.student-row__name {
+  font-weight: var(--weight-medium);
+  font-size: var(--text-base);
+}
+
+/* Status chip — signature element: tap to cycle Hadir -> Izin -> Sakit -> Alpha -> Hadir */
+.status-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 104px;
+  justify-content: center;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-full);
+  border: 1.5px solid transparent;
+  font-weight: var(--weight-semibold);
+  font-size: var(--text-sm);
+  min-height: var(--tap-target-min);
+  transition: transform var(--duration-fast) var(--easing-standard),
+              background var(--duration-fast) var(--easing-standard);
+}
+.status-chip:active { transform: scale(0.94); }
+
+.status-chip--present {
+  background: var(--color-present-tint);
+  color: var(--color-present);
+  border-color: color-mix(in srgb, var(--color-present) 30%, transparent);
+}
+.status-chip--permission {
+  background: var(--color-permission-tint);
+  color: var(--color-permission);
+  border-color: color-mix(in srgb, var(--color-permission) 30%, transparent);
+}
+.status-chip--sick {
+  background: var(--color-sick-tint);
+  color: var(--color-sick);
+  border-color: color-mix(in srgb, var(--color-sick) 30%, transparent);
+}
+.status-chip--absent {
+  background: var(--color-absent-tint);
+  color: var(--color-absent);
+  border-color: color-mix(in srgb, var(--color-absent) 30%, transparent);
+}
+
+.status-chip__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.attendance-footer {
+  position: sticky;
+  bottom: 0;
+  background: var(--color-bg);
+  padding: var(--space-4);
+  border-top: 1px solid var(--color-border);
+}
+
+.attendance-header {
+  padding: 0 var(--space-4) var(--space-3);
+}
+.attendance-header__subject { font-size: var(--text-sm); color: var(--color-ink-muted); }
+
+.result-summary {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-3);
+  margin-bottom: var(--space-2);
+}
+.result-summary__item {
+  text-align: center;
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-sunken);
+}
+.result-summary__value { font-size: var(--text-xl); font-weight: var(--weight-bold); display: block; }
+.result-summary__label { font-size: var(--text-xs); color: var(--color-ink-muted); }

@@ -1,0 +1,122 @@
+/* Base reset — mobile-first */
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--color-bg);
+  color: var(--color-ink);
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  line-height: var(--leading-normal);
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  max-width: var(--app-max-width);
+  margin-inline: auto;
+  min-height: 100dvh;
+}
+
+h1, h2, h3, p { margin: 0; }
+
+h1 { font-size: var(--text-2xl); font-weight: var(--weight-bold); line-height: var(--leading-tight); }
+h2 { font-size: var(--text-xl); font-weight: var(--weight-semibold); line-height: var(--leading-tight); }
+h3 { font-size: var(--text-lg); font-weight: var(--weight-semibold); line-height: var(--leading-tight); }
+
+button, input, select {
+  font-family: inherit;
+  font-size: inherit;
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+  min-height: var(--tap-target-min);
+}
+
+/* Visible keyboard focus — accessibility floor */
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+main {
+  padding: var(--space-4);
+  padding-bottom: var(--space-12);
+}
+
+/* ---------- Loading & Error states (Milestone 9 Polish) ---------- */
+.page-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  padding: var(--space-12) var(--space-4);
+  color: var(--color-ink-muted);
+  font-size: var(--text-sm);
+}
+.page-loading__spinner {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 3px solid var(--color-border);
+  border-top-color: var(--color-primary);
+  animation: spin 700ms linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.page-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-12) var(--space-4);
+  color: var(--color-danger);
+  text-align: center;
+}
+
+/* ---------- Toast (feedback + undo) ---------- */
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: var(--space-6);
+  transform: translateX(-50%);
+  max-width: calc(var(--app-max-width) - var(--space-8));
+  width: calc(100% - var(--space-8));
+  background: var(--color-ink);
+  color: #fff;
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  box-shadow: var(--elevation-3);
+  z-index: 200;
+  animation: toastIn var(--duration-normal) var(--easing-standard);
+  font-size: var(--text-sm);
+}
+.toast__undo {
+  background: none;
+  border: none;
+  color: #fff;
+  font-weight: var(--weight-semibold);
+  text-decoration: underline;
+  min-height: auto;
+  padding: var(--space-1);
+}
+@keyframes toastIn {
+  from { opacity: 0; transform: translate(-50%, 12px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}

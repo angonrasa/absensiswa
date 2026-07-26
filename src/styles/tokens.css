@@ -1,0 +1,88 @@
+/*
+  Design Tokens — Teacher Attendance Companion
+  Konsep: "Buku Absen Digital" — cepat dibaca, cepat disentuh.
+  Warna status BUKAN dekorasi — warna mengkodekan makna (Hadir/Izin/Sakit/Alpha).
+*/
+
+:root {
+  /* ---------- Color: Base ---------- */
+  --color-bg: #FAFAF8;
+  --color-surface: #FFFFFF;
+  --color-surface-sunken: #F1F1EE;
+  --color-border: #E1E1DC;
+  --color-ink: #1C1E1B;
+  --color-ink-muted: #5B5E58;
+  --color-ink-faint: #8B8E86;
+
+  /* ---------- Color: Primary (aksi utama, app bar) ---------- */
+  --color-primary: #1F6F5C;
+  --color-primary-hover: #185A4A;
+  --color-primary-tint: #E4F1EC;
+
+  /* ---------- Color: Status Kehadiran (fungsional, bukan dekoratif) ---------- */
+  --color-present: #2F855A;
+  --color-present-tint: #E7F5EC;
+  --color-permission: #B7791F;
+  --color-permission-tint: #FBF1E0;
+  --color-sick: #2B6CB0;
+  --color-sick-tint: #E5EFF9;
+  --color-absent: #C53030;
+  --color-absent-tint: #FBE8E8;
+
+  /* ---------- Color: Semantic ---------- */
+  --color-danger: #C53030;
+  --color-warning: #B7791F;
+  --color-success: #2F855A;
+
+  /* ---------- Typography ---------- */
+  --font-display: -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-body: -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-data: ui-monospace, "SF Mono", "Cascadia Mono", "Roboto Mono", monospace;
+
+  --text-xs: 0.75rem;   /* 12px - caption, metadata */
+  --text-sm: 0.875rem;  /* 14px - secondary text */
+  --text-base: 1rem;    /* 16px - body */
+  --text-lg: 1.125rem;  /* 18px - subtitle */
+  --text-xl: 1.375rem;  /* 22px - section title */
+  --text-2xl: 1.75rem;  /* 28px - page title */
+
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+
+  --leading-tight: 1.2;
+  --leading-normal: 1.5;
+
+  /* ---------- Spacing (4px scale) ---------- */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+
+  /* ---------- Radius ---------- */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-full: 999px;
+
+  /* ---------- Elevation ---------- */
+  --elevation-0: none;
+  --elevation-1: 0 1px 2px rgba(28, 30, 27, 0.06), 0 1px 1px rgba(28, 30, 27, 0.04);
+  --elevation-2: 0 2px 8px rgba(28, 30, 27, 0.08), 0 1px 2px rgba(28, 30, 27, 0.06);
+  --elevation-3: 0 8px 24px rgba(28, 30, 27, 0.14), 0 2px 6px rgba(28, 30, 27, 0.08);
+
+  /* ---------- Motion ---------- */
+  --duration-fast: 120ms;
+  --duration-normal: 200ms;
+  --easing-standard: cubic-bezier(0.2, 0, 0, 1);
+
+  /* ---------- Layout ---------- */
+  --tap-target-min: 44px;
+  --app-max-width: 480px;
+}
