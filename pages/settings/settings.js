@@ -5,7 +5,7 @@ import {
   readFileAsJSON,
   validateBackup,
 } from "../../src/modules/backup/backup.service.js";
-import { AppBar, Button, Modal, MenuGroup, MenuRow, showToast } from "../../src/components/components.js";
+import { AppBar, BottomNav, Button, Modal, MenuGroup, MenuRow, showToast } from "../../src/components/components.js";
 import { runPage } from "../../src/core/pageState.js";
 
 const app = document.getElementById("app");
@@ -13,6 +13,7 @@ const app = document.getElementById("app");
 async function render() {
   app.innerHTML = "";
   app.appendChild(AppBar({ title: "Pengaturan" }));
+  app.appendChild(BottomNav({ active: "pengaturan" }));
 
   const main = document.createElement("main");
 

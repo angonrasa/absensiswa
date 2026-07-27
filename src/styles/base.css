@@ -54,6 +54,12 @@ main {
   padding-bottom: var(--space-12);
 }
 
+/* Halaman dengan BottomNav (lihat BottomNav() di components.js) butuh
+   ruang bawah ekstra supaya baris/kartu terakhir tidak ketutup tab bar. */
+.has-bottomnav main {
+  padding-bottom: calc(84px + env(safe-area-inset-bottom, 0px));
+}
+
 /* ---------- Loading & Error states (Milestone 9 Polish) ---------- */
 .page-loading {
   display: flex;

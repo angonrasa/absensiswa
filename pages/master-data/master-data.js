@@ -9,6 +9,7 @@ import { showLoading, showError } from "../../src/core/pageState.js";
 import { escapeHtml } from "../../src/core/html.js";
 import {
   AppBar,
+  BottomNav,
   Button,
   Card,
   Input,
@@ -763,11 +764,7 @@ async function renderTabContent() {
 function renderShell() {
   app.innerHTML = "";
   app.appendChild(AppBar({ title: "Data Master" }));
-
-  const nav = document.createElement("div");
-  nav.style.padding = "0 var(--space-4) var(--space-3)";
-  nav.innerHTML = `<a href="../home/index.html" style="color:var(--color-primary);font-size:var(--text-sm);font-weight:var(--weight-medium);text-decoration:none;">← Beranda</a>`;
-  app.appendChild(nav);
+  app.appendChild(BottomNav({ active: "data" }));
 
   const tabs = document.createElement("div");
   tabs.className = "tabs";

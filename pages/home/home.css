@@ -51,21 +51,6 @@
 .schedule-subject { font-weight: var(--weight-semibold); }
 .schedule-class { font-size: var(--text-sm); color: var(--color-ink-muted); }
 
-.home-nav {
-  display: flex;
-  justify-content: center;
-  gap: var(--space-4);
-  margin-top: var(--space-6);
-  padding: var(--space-4);
-  border-top: 1px solid var(--color-border);
-}
-.home-nav a {
-  color: var(--color-primary);
-  font-size: var(--text-sm);
-  font-weight: var(--weight-medium);
-  text-decoration: none;
-}
-
 .home-empty {
   text-align: center;
   padding: var(--space-5) var(--space-4) var(--space-6);
@@ -80,6 +65,19 @@
   font-size: var(--text-sm);
   font-weight: var(--weight-medium);
   text-decoration: none;
+}
+
+/* Bug fix — dua aksi (link langsung + tombol wizard) ditumpuk rapi,
+   bukan dibiarkan inline (tombol .btn defaultnya inline-flex). */
+.home-empty__actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  margin-top: var(--space-3);
+}
+.home-empty__actions .home-empty__link {
+  margin: 0;
 }
 
 /* Milestone R4.3 — empty state penuh (belum ada kelas sama sekali) + stepper.
@@ -115,6 +113,16 @@
   max-width: 270px;
   margin-left: auto;
   margin-right: auto;
+}
+
+/* Bug fix — dua CTA (Data Master langsung + Wizard opsional) ditumpuk
+   rapi; .btn defaultnya inline-flex jadi kalau dibiarkan akan sejajar
+   berdempetan di layar sempit. */
+.setup-empty__actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
 }
 
 .stepper {

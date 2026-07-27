@@ -169,6 +169,71 @@ export function FloatingButton({ icon = "+", onClick }) {
   return fab;
 }
 
+/*
+  Bottom Navigation — 4 tab (Beranda / Data Master / Riwayat / Pengaturan).
+
+  Catatan penting: catatan pembuka 05-Roadmap-Redesign-UIUX.md menyebut
+  komponen ini "sudah jalan" (dicek dari README log 2026-07-27) sehingga
+  sengaja tidak dimasukkan milestone R1-R10. Audit ulang (2026-07-27)
+  menemukan komponen ini TIDAK PERNAH ada di source code — hanya ada di
+  file mockup HTML. Ditambahkan sekarang sebagai bagian dari perbaikan,
+  mengikuti persis markup/ikon di mockup-redesign-v2.html.
+
+  Navigasi pakai <a href> biasa (bukan client-side routing), karena app
+  ini multi-page — satu tab = satu file .html terpisah (01-Arsitektur).
+  Efek samping sengaja: menambah class "has-bottomnav" ke <body> supaya
+  CSS (components.css) tahu perlu menyisakan ruang di bawah untuk konten
+  & FAB, tanpa tiap halaman harus mengatur padding-nya sendiri.
+*/
+const BOTTOM_NAV_ITEMS = [
+  {
+    tab: "beranda",
+    href: "../home/index.html",
+    label: "Beranda",
+    icon: `<path d="M4 11.5L12 4l8 7.5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 10v9a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1v-9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>`,
+  },
+  {
+    tab: "data",
+    href: "../master-data/index.html",
+    label: "Data Master",
+    icon: `<path d="M4 6.5A1.5 1.5 0 0 1 5.5 5h4l2 2.5h7A1.5 1.5 0 0 1 20 9v8.5A1.5 1.5 0 0 1 18.5 19h-13A1.5 1.5 0 0 1 4 17.5v-11Z" stroke-width="2" stroke-linejoin="round"/>`,
+  },
+  {
+    tab: "riwayat",
+    href: "../history/index.html",
+    label: "Riwayat",
+    icon: `<circle cx="12" cy="12" r="8" stroke-width="2"/><path d="M12 8v4l3 2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>`,
+  },
+  {
+    tab: "pengaturan",
+    href: "../settings/index.html",
+    label: "Pengaturan",
+    icon: `<circle cx="12" cy="12" r="2.6" stroke-width="2"/><path d="M12 4.5v1.6M12 17.9v1.6M4.5 12h1.6M17.9 12h1.6M6.8 6.8l1.15 1.15M16.05 16.05l1.15 1.15M6.8 17.2l1.15-1.15M16.05 7.95l1.15-1.15" stroke-width="2" stroke-linecap="round"/>`,
+  },
+];
+
+export function BottomNav({ active }) {
+  document.body.classList.add("has-bottomnav");
+
+  const nav = document.createElement("nav");
+  nav.className = "bottomnav";
+  nav.setAttribute("aria-label", "Navigasi utama");
+
+  BOTTOM_NAV_ITEMS.forEach(({ tab, href, label, icon }) => {
+    const item = document.createElement("a");
+    item.className = `navitem${tab === active ? " is-active" : ""}`;
+    item.href = href;
+    if (tab === active) item.setAttribute("aria-current", "page");
+    item.innerHTML = `
+      <span class="icon-wrap"><svg width="21" height="21" viewBox="0 0 24 24" fill="none">${icon}</svg></span>
+      <span class="label">${label}</span>
+    `;
+    nav.appendChild(item);
+  });
+
+  return nav;
+}
+
 let activeToast = null;
 
 /**

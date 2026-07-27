@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>PREVIEW — Beranda Terisi (komponen asli)</title>
+  <link rel="stylesheet" href="../../src/styles/tokens.css" />
+  <link rel="stylesheet" href="../../src/styles/base.css" />
+  <link rel="stylesheet" href="../../src/components/components.css" />
+  <link rel="stylesheet" href="../../src/components/statRing.css" />
+  <link rel="stylesheet" href="../home/home.css" />
+  <meta name="theme-color" content="#0d9488" />
+  <style>
+    /* Cuma buat halaman preview ini: pita kuning penanda supaya tidak
+       ketuker sama halaman app sungguhan. TIDAK ada di home.css asli. */
+    .preview-banner {
+      background: #B45309;
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      text-align: center;
+      padding: 6px;
+    }
+  </style>
+</head>
+<body>
+  <div class="preview-banner">PREVIEW — komponen asli + data contoh, BUKAN halaman app sungguhan</div>
+  <div id="app"></div>
+
+  <script type="module">
+    import { AppBar, BottomNav, Card, Badge } from "../../src/components/components.js";
+    import { StatCardGroup } from "../../src/components/statRing.js";
+
+    const app = document.getElementById("app");
+
+    // Data contoh — sengaja disamakan persis dengan mockup-redesign-v2.html
+    // (86 total siswa, 3 jadwal IPA 9B/9B/7A, semua "Belum Diabsen").
+    const SAMPLE_SCHEDULES = [
+      { startTime: "08:50", endTime: "10:10", subject: "IPA", className: "9B" },
+      { startTime: "10:30", endTime: "11:10", subject: "IPA", className: "9B" },
+      { startTime: "11:10", endTime: "13:10", subject: "IPA", className: "7A" },
+    ];
+
+    app.appendChild(AppBar({ title: "Beranda" }));
+    app.appendChild(BottomNav({ active: "beranda" }));
+
+    const main = document.createElement("main");
+
+    const dateEl = document.createElement("div");
+    dateEl.className = "home-date";
+    dateEl.textContent = "Senin, 27 Juli 2026";
+    main.appendChild(dateEl);
+
+    main.appendChild(
+      StatCardGroup({
+        percent: null, // null -> tampil "–" persis seperti mockup (belum ada yang diabsen)
+        hadirHariIni: 0,
+        tidakHadir: 0,
+        totalSiswa: 86,
+      })
+    );
+
+    const heading = document.createElement("h1");
+    heading.className = "home-heading";
+    heading.textContent = "Jadwal Hari Ini";
+    main.appendChild(heading);
+
+    const list = document.createElement("div");
+    list.className = "schedule-list";
+
+    SAMPLE_SCHEDULES.forEach((sch) => {
+      const row = document.createElement("div");
+      row.className = "schedule-row";
+
+      const timeEl = document.createElement("div");
+      timeEl.className = "schedule-time";
+      timeEl.innerHTML = `<span>${sch.startTime}</span><span class="schedule-time__end">${sch.endTime}</span>`;
+      row.appendChild(timeEl);
+
+      const bar = document.createElement("div");
+      bar.className = "schedule-bar";
+      row.appendChild(bar);
+
+      const info = document.createElement("div");
+      info.className = "schedule-main";
+      info.innerHTML = `<span class="schedule-subject">${sch.subject}</span><span class="schedule-class">${sch.className}</span>`;
+      row.appendChild(info);
+
+      row.appendChild(Badge({ status: null, label: "Belum Diabsen" }));
+
+      list.appendChild(Card({ content: row, pressable: true }));
+    });
+
+    main.appendChild(list);
+    app.appendChild(main);
+  </script>
+</body>
+</html>

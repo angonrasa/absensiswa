@@ -4,7 +4,7 @@ import { ClassRepository } from "../../src/modules/class/class.repository.js";
 import { AttendanceRepository } from "../../src/modules/attendance/attendance.repository.js";
 import { formatDisplayDate } from "../../src/core/date.js";
 import { computeWarnings } from "../../src/modules/history/warning.service.js";
-import { AppBar, Button, Card, Input, Modal, Select, showToast } from "../../src/components/components.js";
+import { AppBar, BottomNav, Button, Card, Input, Modal, Select, showToast } from "../../src/components/components.js";
 import { showLoading, showError } from "../../src/core/pageState.js";
 import { escapeHtml } from "../../src/core/html.js";
 
@@ -23,6 +23,7 @@ const studentId = params.get("studentId");
 async function renderPicker() {
   app.innerHTML = "";
   app.appendChild(AppBar({ title: "Riwayat Kehadiran" }));
+  app.appendChild(BottomNav({ active: "riwayat" }));
 
   const main = document.createElement("main");
 
@@ -171,6 +172,7 @@ async function renderDetail() {
   if (!student) {
     app.innerHTML = "";
     app.appendChild(AppBar({ title: "Riwayat Kehadiran" }));
+    app.appendChild(BottomNav({ active: "riwayat" }));
     const main = document.createElement("main");
     main.innerHTML = `<p>Siswa tidak ditemukan.</p>`;
     app.appendChild(main);
@@ -182,6 +184,7 @@ async function renderDetail() {
 
   app.innerHTML = "";
   app.appendChild(AppBar({ title: "Riwayat Kehadiran" }));
+  app.appendChild(BottomNav({ active: "riwayat" }));
 
   const header = document.createElement("div");
   header.className = "history-header";

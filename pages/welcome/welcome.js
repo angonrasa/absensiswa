@@ -144,3 +144,4 @@ async function main() {
 }
 
 main();
+alert("WELCOME.JS VERSI BARU");

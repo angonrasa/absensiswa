@@ -1,7 +1,23 @@
 import { openDB, withStore, requestToPromise, clearAllStores, STORE } from "../../database/db.js";
 
 const BACKUP_VERSION = 1;
-const REQUIRED_STORES = Object.values(STORE);
+
+// 6 entitas inti sesuai 02-Data-Model-Pendamping.md — WAJIB ada di file backup.
+const CORE_STORES = [
+  STORE.ACADEMIC_YEAR,
+  STORE.CLASS,
+  STORE.STUDENT,
+  STORE.SCHEDULE,
+  STORE.ATTENDANCE_SESSION,
+  STORE.ATTENDANCE_RECORD,
+];
+
+// Store non-inti (preferensi UI, bukan data absensi — lihat catatan R7.1 di
+// db.js). OPSIONAL: file backup lama (sebelum store ini ada) harus tetap
+// bisa diimpor tanpa ditolak hanya karena tidak punya kunci ini.
+const OPTIONAL_STORES = [STORE.SETTINGS];
+
+const ALL_STORES = [...CORE_STORES, ...OPTIONAL_STORES];
 
 /**
  * Export seluruh data ke satu object JSON.
@@ -9,7 +25,7 @@ const REQUIRED_STORES = Object.values(STORE);
  */
 export async function exportData() {
   const data = {};
-  for (const storeName of REQUIRED_STORES) {
+  for (const storeName of ALL_STORES) {
     data[storeName] = await withStore(storeName, "readonly", (store) =>
       requestToPromise(store.getAll())
     );
@@ -44,6 +60,10 @@ export async function exportToFile() {
 /**
  * Validasi struktur file backup.
  * Mengikuti Algoritma Import: "Validasi Struktur" sebelum menulis ke database.
+ *
+ * CORE_STORES wajib berupa array. OPTIONAL_STORES (settings) boleh tidak
+ * ada sama sekali di file lama — hanya divalidasi KALAU kuncinya ada tapi
+ * bukan array (berarti memang rusak, bukan sekadar backup versi lama).
  */
 export function validateBackup(payload) {
   const errors = [];
@@ -58,9 +78,16 @@ export function validateBackup(payload) {
     return { valid: false, errors };
   }
 
-  for (const storeName of REQUIRED_STORES) {
+  for (const storeName of CORE_STORES) {
     if (!Array.isArray(payload.data[storeName])) {
       errors.push(`Data '${storeName}' tidak ditemukan atau bukan array.`);
+    }
+  }
+
+  for (const storeName of OPTIONAL_STORES) {
+    const present = Object.prototype.hasOwnProperty.call(payload.data, storeName);
+    if (present && !Array.isArray(payload.data[storeName])) {
+      errors.push(`Data '${storeName}' ada tapi bukan array.`);
     }
   }
 
@@ -80,8 +107,11 @@ export async function importData(payload) {
   await clearAllStores();
   await openDB();
 
-  for (const storeName of REQUIRED_STORES) {
-    const records = payload.data[storeName];
+  for (const storeName of ALL_STORES) {
+    // Backup lama mungkin tidak punya store opsional sama sekali (mis.
+    // 'settings' sebelum R7.1) — anggap kosong, bukan error, biar
+    // migrateIfNeeded (home.js) yang menentukan ulang saat Beranda dibuka.
+    const records = payload.data[storeName] || [];
     await withStore(storeName, "readwrite", (store) => {
       for (const record of records) store.put(record);
     });

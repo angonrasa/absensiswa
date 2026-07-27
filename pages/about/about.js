@@ -1,5 +1,5 @@
 import { openDB } from "../../src/database/db.js";
-import { AppBar } from "../../src/components/components.js";
+import { AppBar, BottomNav } from "../../src/components/components.js";
 import { runPage } from "../../src/core/pageState.js";
 
 const app = document.getElementById("app");
@@ -21,6 +21,7 @@ function render() {
   });
 
   app.appendChild(AppBar({ title: "Tentang", leftAction: backBtn }));
+  app.appendChild(BottomNav({ active: "pengaturan" }));
 
   const main = document.createElement("main");
 

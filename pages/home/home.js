@@ -5,9 +5,9 @@ import { StudentRepository } from "../../src/modules/student/student.repository.
 import { AttendanceRepository } from "../../src/modules/attendance/attendance.repository.js";
 import { SettingsRepository } from "../../src/modules/settings/settings.repository.js";
 import { toDateKey } from "../../src/core/date.js";
-import { AppBar, Card, Badge, Button, FloatingButton } from "../../src/components/components.js";
+import { AppBar, BottomNav, Card, Badge, Button, FloatingButton } from "../../src/components/components.js";
 import { StatCardGroup } from "../../src/components/statRing.js";
-import { computeSetupChecklist } from "../../src/core/setupChecklist.js";
+import { computeSetupChecklist, isSetupComplete } from "../../src/core/setupChecklist.js";
 import { runPage } from "../../src/core/pageState.js";
 import { escapeHtml } from "../../src/core/html.js";
 
@@ -59,10 +59,43 @@ async function computeTodayStats(dateKey, todaysScheduledClassIds) {
 }
 
 /**
+ * R10.2 — tombol OPSIONAL yang membuka kembali Wizard (R9) dari step
+ * pertama yang belum selesai. Wizard sendiri yang menghitung step awal
+ * (lihat resolveStartingStep di wizard.js) dari data asli lewat
+ * computeSetupChecklist yang sama (R10.1) — di sini cukup arahkan ke
+ * halamannya, tidak ada logika "step mana" yang diduplikasi.
+ *
+ * PENTING (perbaikan bug): tombol ini TIDAK BOLEH jadi satu-satunya aksi
+ * di empty state. Guru yang menekan "Lewati"/"Nanti saja" memilih untuk
+ * TIDAK memakai wizard dulu — kalau satu-satunya tombol yang tersedia
+ * setelah itu justru membuka wizard lagi (dan karena data masih 0/0/0,
+ * wizard itu mulai dari Step 1), rasanya seperti "Lewati" tidak berefek /
+ * selalu kembali ke wizard dari awal. Karena itu selalu ditampilkan
+ * berdampingan dengan jalur langsung ke Data Master (lihat pemanggilnya).
+ */
+
+function ContinueSetupButton(variant = "primary") {
+  return Button({
+    label: "Lanjutkan pakai Wizard →",
+    variant,
+    onClick: () => {
+      window.location.href = "../onboarding-wizard/index.html";
+    },
+  });
+}
+
+/**
  * Milestone R4.3 — empty state penuh (belum ada kelas sama sekali), menampilkan
  * stepper 4 langkah, dihitung dari data asli. Karena Student/Schedule berelasi
  * FK ke Class (lihat 02-Data-Model-Pendamping.md), kalau classCount === 0 maka
  * studentCount dan scheduleCount pasti juga 0 — tidak perlu query tambahan.
+ *
+ * R10.2 — menambahkan opsi "Lanjutkan pakai Wizard →" di SAMPING (bukan
+ * menggantikan) CTA langsung ke Data Master. Guru yang sampai di sini
+ * sudah pasti pernah pilih "Nanti saja" (kalau belum, main() sudah
+ * mengarahkan ke Welcome duluan) — CTA langsung tetap harus ada supaya
+ * pilihan "Nanti saja" itu benar-benar berarti "boleh isi manual, tanpa
+ * wizard", bukan dipaksa balik ke wizard.
  */
 function renderSetupEmptyState() {
   const checklist = computeSetupChecklist({ classCount: 0, studentCount: 0, scheduleCount: 0 });
@@ -87,7 +120,9 @@ function renderSetupEmptyState() {
     "Tambahkan tahun ajaran, kelas, dan siswa dulu di Data Master. Jadwal hari ini akan muncul otomatis setelah itu.";
   wrap.appendChild(desc);
 
-  wrap.appendChild(
+  const actions = document.createElement("div");
+  actions.className = "setup-empty__actions";
+  actions.appendChild(
     Button({
       label: "Mulai isi Data Master →",
       variant: "primary",
@@ -96,6 +131,8 @@ function renderSetupEmptyState() {
       },
     })
   );
+  actions.appendChild(ContinueSetupButton("ghost"));
+  wrap.appendChild(actions);
 
   const stepper = document.createElement("div");
   stepper.className = "stepper";
@@ -133,11 +170,7 @@ function renderSetupEmptyState() {
 async function render() {
   app.innerHTML = "";
   app.appendChild(AppBar({ title: "Beranda" }));
-
-  const nav = document.createElement("div");
-  nav.className = "home-nav";
-  nav.innerHTML = `<a href="../master-data/index.html">Data Master →</a><a href="../history/index.html">Riwayat →</a><a href="../settings/index.html">Pengaturan →</a>`;
-  app.appendChild(nav);
+  app.appendChild(BottomNav({ active: "beranda" }));
 
   const main = document.createElement("main");
 
@@ -181,16 +214,49 @@ async function render() {
     const empty = document.createElement("div");
     empty.className = "home-empty";
 
-    const message = document.createElement("p");
-    message.className = "home-empty__message";
-    message.textContent = "Tidak ada jadwal hari ini.";
-    empty.appendChild(message);
+    // R10.2 — "Tidak ada jadwal hari ini" bisa berarti dua hal: memang tidak
+    // ada jadwal hari ini (mis. weekend, setup sudah lengkap) atau setup
+    // belum lengkap sama sekali (kelas sudah ada tapi belum ada siswa/jadwal
+    // sama sekali di kelas manapun). Dibedakan lewat checklist yang sama
+    // dengan Welcome/empty-state-penuh (R10.1), bukan aturan baru.
+    const [studentCount, scheduleCount] = await Promise.all([
+      studentRepo.getAll().then((list) => list.length),
+      scheduleRepo.getAll().then((list) => list.length),
+    ]);
+    const checklist = computeSetupChecklist({ classCount: classes.length, studentCount, scheduleCount });
 
-    const weekLink = document.createElement("a");
-    weekLink.className = "home-empty__link";
-    weekLink.href = "../master-data/index.html?tab=schedule";
-    weekLink.textContent = "Lihat jadwal seminggu →";
-    empty.appendChild(weekLink);
+    if (!isSetupComplete({ classCount: classes.length, studentCount, scheduleCount })) {
+      const message = document.createElement("p");
+      message.className = "home-empty__message";
+      message.textContent = "Setup awal belum lengkap, jadi belum ada jadwal yang bisa ditampilkan.";
+      empty.appendChild(message);
+
+      const actions = document.createElement("div");
+      actions.className = "home-empty__actions";
+
+      // Bug fix: sediakan jalur langsung ke Data Master juga, bukan cuma
+      // tombol wizard — supaya guru yang memang tidak mau pakai wizard
+      // tidak merasa terjebak (lihat catatan di ContinueSetupButton).
+      const directLink = document.createElement("a");
+      directLink.className = "home-empty__link";
+      directLink.href = "../master-data/index.html";
+      directLink.textContent = "Isi manual di Data Master →";
+      actions.appendChild(directLink);
+
+      actions.appendChild(ContinueSetupButton("secondary"));
+      empty.appendChild(actions);
+    } else {
+      const message = document.createElement("p");
+      message.className = "home-empty__message";
+      message.textContent = "Tidak ada jadwal hari ini.";
+      empty.appendChild(message);
+
+      const weekLink = document.createElement("a");
+      weekLink.className = "home-empty__link";
+      weekLink.href = "../master-data/index.html?tab=schedule";
+      weekLink.textContent = "Lihat jadwal seminggu →";
+      empty.appendChild(weekLink);
+    }
 
     main.appendChild(empty);
     app.appendChild(main);
@@ -276,6 +342,9 @@ async function main() {
   await settingsRepo.migrateIfNeeded({ classCount, studentCount, scheduleCount });
 
   const config = await settingsRepo.getConfig();
+  
+ 
+  
   if (!config.hasSeenOnboarding) {
     window.location.href = "../welcome/index.html";
     return;
@@ -285,3 +354,4 @@ async function main() {
 }
 
 main();
+

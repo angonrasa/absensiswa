@@ -18,7 +18,16 @@ export class SettingsRepository {
   async setHasSeenOnboarding(value) {
     const current = await this.getConfig();
     const updated = { ...current, hasSeenOnboarding: Boolean(value) };
-    await withStore(STORE.SETTINGS, "readwrite", (store) => store.put(updated));
+    // FIX: getConfig() membungkus store.get() dengan requestToPromise, tapi
+    // di sini store.put() TIDAK dibungkus — jadi await di atasnya cuma
+    // menunggu callback selesai dieksekusi, bukan menunggu transaksi tulis
+    // benar-benar commit. Ini race condition: kalau pemanggil (wizard.js
+    // skipAll()/doneBtn) langsung window.location.href = "..." setelah
+    // await ini, navigasi bisa terjadi sebelum tulisan IndexedDB commit,
+    // jadi hasSeenOnboarding gagal tersimpan dan app balik ke wizard lagi.
+    await withStore(STORE.SETTINGS, "readwrite", (store) =>
+      requestToPromise(store.put(updated))
+    );
     return updated;
   }
 
