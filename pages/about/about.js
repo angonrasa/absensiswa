@@ -28,9 +28,13 @@ function render() {
   hero.className = "about-hero";
   hero.innerHTML = `
     <div class="about-hero__icon" aria-hidden="true">
-      <svg width="30" height="30" viewBox="0 0 24 24" fill="none">
-        <path d="M4 6.5A1.5 1.5 0 0 1 5.5 5h4l2 2.5h7A1.5 1.5 0 0 1 20 9v8.5A1.5 1.5 0 0 1 18.5 19h-13A1.5 1.5 0 0 1 4 17.5v-11Z"
-          stroke="#fff" stroke-width="2" stroke-linejoin="round" />
+      <svg width="34" height="34" viewBox="0 0 24 24" fill="none">
+        <path d="M9 3.5h6a1 1 0 0 1 1 1V6h1.5A1.5 1.5 0 0 1 19 7.5v13A1.5 1.5 0 0 1 17.5 22h-11A1.5 1.5 0 0 1 5 20.5v-13A1.5 1.5 0 0 1 6.5 6H8V4.5a1 1 0 0 1 1-1Z"
+          stroke="#fff" stroke-width="1.6" stroke-linejoin="round" />
+        <circle cx="12" cy="4.5" r="1" fill="#fff" />
+        <path d="M8.2 10.5h5.6" stroke="#fff" stroke-width="1.6" stroke-linecap="round" />
+        <path d="M8.2 13.2h4" stroke="#fff" stroke-width="1.6" stroke-linecap="round" />
+        <path d="M8.5 17.3l2.3 2.3 4.7-4.9" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
       </svg>
     </div>
     <h3 class="about-hero__title">Teacher Attendance Companion</h3>

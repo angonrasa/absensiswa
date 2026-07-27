@@ -5,7 +5,7 @@
 */
 
 const DB_NAME = "teacher-attendance-db";
-const DB_VERSION = 1;
+const DB_VERSION = 2; // R7.1 — v2: tambah store SETTINGS (hasSeenOnboarding), tidak ubah store lama
 
 export const STORE = {
   ACADEMIC_YEAR: "academicYear",
@@ -14,6 +14,7 @@ export const STORE = {
   SCHEDULE: "schedule",
   ATTENDANCE_SESSION: "attendanceSession",
   ATTENDANCE_RECORD: "attendanceRecord",
+  SETTINGS: "settings",
 };
 
 let dbPromise = null;
@@ -63,6 +64,14 @@ export function openDB() {
         store.createIndex("attendanceSessionId", "attendanceSessionId");
         store.createIndex("studentId", "studentId");
         store.createIndex("status", "status");
+      }
+
+      // R7.1 — Settings: satu baris config (bukan entitas berelasi), dipakai
+      // untuk preferensi tampilan seperti hasSeenOnboarding. Bukan bagian dari
+      // 6 entitas inti di 02-Data-Model-Pendamping.md, jadi sengaja dipisah
+      // ke store-nya sendiri agar tidak mencampur data absensi dengan preferensi UI.
+      if (!db.objectStoreNames.contains(STORE.SETTINGS)) {
+        db.createObjectStore(STORE.SETTINGS, { keyPath: "id" });
       }
     };
 
