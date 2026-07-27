@@ -225,7 +225,7 @@ export function BottomNav({ active }) {
     item.href = href;
     if (tab === active) item.setAttribute("aria-current", "page");
     item.innerHTML = `
-      <span class="icon-wrap"><svg width="21" height="21" viewBox="0 0 24 24" fill="none">${icon}</svg></span>
+      <span class="icon-wrap"><svg width="24" height="24" viewBox="0 0 24 24" fill="none">${icon}</svg></span>
       <span class="label">${label}</span>
     `;
     nav.appendChild(item);
