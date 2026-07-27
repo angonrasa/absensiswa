@@ -236,3 +236,9 @@
   margin-top: 2px;
 }
 .menu-row__chevron { color: var(--color-ink-faint); flex: 0 0 auto; }
+
+/* R6.1 — varian danger untuk aksi merusak (mis. Reset Semua Data),
+   reuse token warna yang sudah ada (absent/danger = merah yang sama). */
+.menu-row--danger { color: var(--color-danger); }
+.menu-row--danger .menu-row__icon { background: var(--color-absent-tint); }
+.menu-row--danger .menu-row__sub { color: var(--color-danger); }

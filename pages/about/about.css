@@ -1,0 +1,56 @@
+/* R6.2 — Halaman Tentang, warna diselaraskan ke token dari R1/R2 */
+
+.about-hero {
+  text-align: center;
+  padding: var(--space-8) var(--space-3) var(--space-6);
+}
+
+.about-hero__icon {
+  width: 68px;
+  height: 68px;
+  border-radius: var(--radius-lg);
+  background: var(--color-primary);
+  margin: 0 auto var(--space-4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.about-hero__title {
+  font-size: var(--text-lg);
+  margin: 0 0 4px;
+  color: var(--color-ink);
+  font-weight: var(--weight-bold);
+}
+
+.about-hero__version {
+  font-family: var(--font-data);
+  font-size: var(--text-xs);
+  color: var(--color-accent);
+  background: var(--color-accent-tint);
+  display: inline-block;
+  padding: 4px var(--space-3);
+  border-radius: var(--radius-full);
+  margin-top: var(--space-2);
+  font-weight: var(--weight-bold);
+}
+
+.about-body {
+  font-size: var(--text-sm);
+  color: var(--color-ink-muted);
+  line-height: var(--leading-normal);
+  padding: 0 var(--space-2);
+}
+
+.about-body strong {
+  color: var(--color-ink);
+}
+
+.about-credit {
+  text-align: center;
+  font-size: var(--text-xs);
+  color: var(--color-ink-faint);
+  font-weight: var(--weight-medium);
+  margin-top: var(--space-6);
+  padding: 0 var(--space-2);
+}

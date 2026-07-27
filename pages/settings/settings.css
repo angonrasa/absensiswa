@@ -1,16 +1,8 @@
-.settings-section {
-  margin-bottom: var(--space-6);
-}
-
-.settings-section h3 {
-  margin-bottom: var(--space-2);
-}
-
-.settings-section p {
-  color: var(--color-ink-muted);
-  margin-bottom: var(--space-3);
-}
-
-.settings-danger {
-  border: 1px solid var(--color-danger, #c0392b);
-}
+/*
+  R6.1 — Pengaturan sekarang memakai .menu-group/.menu-row (lihat
+  components.css) untuk seluruh isi halaman, jadi style Card/section
+  lama (.settings-section, .settings-danger) sudah tidak dipakai dan
+  dihapus dari sini. File disisakan kosong (bukan dihapus) supaya link
+  <link rel="stylesheet" href="./settings.css" /> di index.html tetap valid
+  tanpa perlu menyentuh markup halaman lain.
+*/

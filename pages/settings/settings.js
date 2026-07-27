@@ -5,28 +5,10 @@ import {
   readFileAsJSON,
   validateBackup,
 } from "../../src/modules/backup/backup.service.js";
-import { AppBar, Button, Card, Modal, showToast } from "../../src/components/components.js";
+import { AppBar, Button, Modal, MenuGroup, MenuRow, showToast } from "../../src/components/components.js";
 import { runPage } from "../../src/core/pageState.js";
 
 const app = document.getElementById("app");
-
-function section({ title, description, children }) {
-  const wrap = document.createElement("div");
-  wrap.className = "settings-section";
-
-  const heading = document.createElement("h3");
-  heading.textContent = title;
-  wrap.appendChild(heading);
-
-  if (description) {
-    const desc = document.createElement("p");
-    desc.textContent = description;
-    wrap.appendChild(desc);
-  }
-
-  children.forEach((child) => wrap.appendChild(child));
-  return wrap;
-}
 
 async function render() {
   app.innerHTML = "";
@@ -34,29 +16,7 @@ async function render() {
 
   const main = document.createElement("main");
 
-  // --- Backup: Export ---
-  const exportBtn = Button({
-    label: "Export Data (JSON)",
-    variant: "secondary",
-    block: true,
-    onClick: async () => {
-      await exportToFile();
-      showToast({ message: "Backup berhasil diunduh." });
-    },
-  });
-
-  const exportCard = Card({
-    content: section({
-      title: "Backup Data",
-      description:
-        "Simpan seluruh data (tahun ajaran, kelas, siswa, jadwal, dan riwayat kehadiran) ke satu file JSON.",
-      children: [exportBtn],
-    }),
-  });
-  exportCard.style.marginBottom = "var(--space-4)";
-  main.appendChild(exportCard);
-
-  // --- Backup: Import ---
+  // --- Import: input file tersembunyi, dipicu dari menu row ---
   const importInput = document.createElement("input");
   importInput.type = "file";
   importInput.accept = "application/json";
@@ -99,59 +59,74 @@ async function render() {
     document.body.appendChild(modal);
   });
 
-  const importBtn = Button({
-    label: "Import Data (JSON)",
-    variant: "secondary",
-    block: true,
-    onClick: () => importInput.click(),
+  // --- Grup: Data ---
+  const dataGroup = MenuGroup({
+    title: "Data",
+    rows: [
+      MenuRow({
+        icon: "⇅",
+        label: "Export Data (JSON)",
+        sub: "Simpan seluruh data ke satu file backup",
+        chevron: false,
+        onClick: async () => {
+          await exportToFile();
+          showToast({ message: "Backup berhasil diunduh." });
+        },
+      }),
+      MenuRow({
+        icon: "⬆",
+        label: "Import Data (JSON)",
+        sub: "Pulihkan data dari file backup, menimpa data saat ini",
+        chevron: false,
+        onClick: () => importInput.click(),
+      }),
+    ],
   });
 
-  const importCard = Card({
-    content: section({
-      title: "Restore Data",
-      description: "Pulihkan data dari file backup JSON. Data saat ini akan ditimpa.",
-      children: [importBtn, importInput],
-    }),
+  // --- Grup: Lainnya ---
+  const otherGroup = MenuGroup({
+    title: "Lainnya",
+    rows: [
+      MenuRow({
+        icon: "🗑",
+        label: "Reset Semua Data",
+        sub: "Hapus seluruh data lokal, termasuk jadwal & sesi absensi",
+        danger: true,
+        chevron: false,
+        onClick: () => {
+          const modal = Modal({
+            title: "Reset Semua Data?",
+            body: "Ini akan menghapus SELURUH data — tahun ajaran, kelas, siswa, jadwal, sesi absensi, dan riwayat kehadiran — tanpa bisa dikembalikan kecuali kamu punya file backup. Lanjutkan?",
+            actions: [
+              Button({ label: "Batal", variant: "secondary", onClick: () => modal.close() }),
+              Button({
+                label: "Ya, Hapus Semua",
+                variant: "danger",
+                onClick: async () => {
+                  await clearAllStores();
+                  modal.close();
+                  window.location.href = "../home/index.html";
+                },
+              }),
+            ],
+          });
+          document.body.appendChild(modal);
+        },
+      }),
+      MenuRow({
+        icon: "ℹ️",
+        label: "Tentang Aplikasi",
+        sub: "Versi, info aplikasi",
+        onClick: () => {
+          window.location.href = "../about/index.html";
+        },
+      }),
+    ],
   });
-  importCard.style.marginBottom = "var(--space-4)";
-  main.appendChild(importCard);
 
-  // --- Reset semua data ---
-  const resetBtn = Button({
-    label: "Reset Semua Data",
-    variant: "danger",
-    block: true,
-    onClick: () => {
-      const modal = Modal({
-        title: "Reset Semua Data?",
-        body: "Ini akan menghapus SELURUH data — tahun ajaran, kelas, siswa, jadwal, sesi absensi, dan riwayat kehadiran — tanpa bisa dikembalikan kecuali kamu punya file backup. Lanjutkan?",
-        actions: [
-          Button({ label: "Batal", variant: "secondary", onClick: () => modal.close() }),
-          Button({
-            label: "Ya, Hapus Semua",
-            variant: "danger",
-            onClick: async () => {
-              await clearAllStores();
-              modal.close();
-              window.location.href = "../home/index.html";
-            },
-          }),
-        ],
-      });
-      document.body.appendChild(modal);
-    },
-  });
-
-  const resetCard = Card({
-    content: section({
-      title: "Reset Data",
-      description:
-        "Hapus total seluruh isi database (termasuk jadwal dan sesi absensi yang tidak bisa dihapus satu-satu dari Data Master). Gunakan untuk mulai dari awal yang benar-benar bersih.",
-      children: [resetBtn],
-    }),
-  });
-  resetCard.classList.add("settings-danger");
-  main.appendChild(resetCard);
+  main.appendChild(dataGroup);
+  main.appendChild(otherGroup);
+  main.appendChild(importInput);
 
   app.appendChild(main);
 }

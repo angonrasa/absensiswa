@@ -109,6 +109,57 @@ export function AppBar({ title, leftAction, rightAction }) {
   return bar;
 }
 
+export function MenuRow({ icon, label, sub, danger = false, chevron = true, onClick }) {
+  const row = document.createElement("button");
+  row.type = "button";
+  row.className = `menu-row${danger ? " menu-row--danger" : ""}`;
+
+  if (icon) {
+    const iconEl = document.createElement("span");
+    iconEl.className = "menu-row__icon";
+    iconEl.setAttribute("aria-hidden", "true");
+    iconEl.textContent = icon;
+    row.appendChild(iconEl);
+  }
+
+  const textEl = document.createElement("div");
+  textEl.className = "menu-row__text";
+  textEl.textContent = label;
+  if (sub) {
+    const subEl = document.createElement("div");
+    subEl.className = "menu-row__sub";
+    subEl.textContent = sub;
+    textEl.appendChild(subEl);
+  }
+  row.appendChild(textEl);
+
+  if (chevron) {
+    const chevronEl = document.createElement("span");
+    chevronEl.className = "menu-row__chevron";
+    chevronEl.setAttribute("aria-hidden", "true");
+    chevronEl.textContent = "›";
+    row.appendChild(chevronEl);
+  }
+
+  if (onClick) row.addEventListener("click", onClick);
+  return row;
+}
+
+export function MenuGroup({ title, rows = [] }) {
+  const group = document.createElement("div");
+  group.className = "menu-group";
+
+  if (title) {
+    const heading = document.createElement("div");
+    heading.className = "menu-group__title";
+    heading.textContent = title;
+    group.appendChild(heading);
+  }
+
+  rows.forEach((row) => group.appendChild(row));
+  return group;
+}
+
 export function FloatingButton({ icon = "+", onClick }) {
   const fab = document.createElement("button");
   fab.className = "fab";
