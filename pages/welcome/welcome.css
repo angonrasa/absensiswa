@@ -1,0 +1,234 @@
+/* R8.1 — Layar Welcome, palet & bentuk mengikuti mockup-onboarding-1.html
+   tapi seluruh nilai warna/spasi diambil dari tokens.css (bukan hex mentah). */
+
+.welcome {
+  min-height: 100vh;
+  padding: var(--space-4) var(--space-6) calc(var(--space-6) + env(safe-area-inset-bottom, 0px));
+  display: flex;
+  flex-direction: column;
+}
+
+.welcome__skip {
+  align-self: flex-end;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-bold);
+  color: var(--color-ink-faint);
+  background: none;
+  border: none;
+  font-family: inherit;
+  padding: var(--space-2);
+  cursor: pointer;
+  min-height: var(--tap-target-min);
+}
+
+/* ---------- Hero ---------- */
+.welcome__hero {
+  position: relative;
+  height: 220px;
+  margin: var(--space-4) 0 var(--space-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.welcome__blob {
+  position: absolute;
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, var(--color-accent-tint), var(--color-surface-sunken) 70%);
+}
+.welcome__card {
+  position: relative;
+  width: 180px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  box-shadow: var(--elevation-1);
+  transform: rotate(-3deg);
+}
+.welcome__card-top {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+}
+.welcome__avatar {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  flex: 0 0 auto;
+}
+.welcome__line {
+  height: 8px;
+  border-radius: var(--radius-sm);
+  background: var(--color-border);
+  flex: 1 1 auto;
+}
+.welcome__row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-2);
+}
+.welcome__tick {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  color: #fff;
+  font-size: 11px;
+  font-weight: var(--weight-bold);
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.welcome__bar {
+  height: 8px;
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-sunken);
+  flex: 1 1 auto;
+}
+.welcome__row--pending .welcome__tick--pending {
+  background: var(--color-surface-sunken);
+  border: 2px solid var(--color-border);
+}
+.welcome__clock {
+  position: absolute;
+  top: 4px;
+  right: var(--space-4);
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.welcome__check {
+  position: absolute;
+  bottom: var(--space-3);
+  left: var(--space-3);
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md);
+  background: var(--color-accent);
+  color: #fff;
+  font-weight: var(--weight-bold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ---------- Headline ---------- */
+.welcome__headline {
+  text-align: center;
+  margin-top: var(--space-3);
+}
+.welcome__headline h2 {
+  font-size: var(--text-2xl);
+  font-weight: var(--weight-bold);
+  margin: 0 0 var(--space-2);
+  color: var(--color-ink);
+  letter-spacing: -0.01em;
+}
+.welcome__headline p {
+  font-size: var(--text-base);
+  color: var(--color-ink-muted);
+  line-height: var(--leading-normal);
+  margin: 0;
+  font-weight: var(--weight-medium);
+}
+.welcome__headline strong {
+  color: var(--color-accent);
+  font-weight: var(--weight-bold);
+}
+
+/* ---------- Checklist ---------- */
+.welcome__prep-label {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-bold);
+  color: var(--color-ink);
+  margin: var(--space-6) 2px var(--space-3);
+}
+.welcome__checklist {
+  background: var(--color-surface-sunken);
+  border-radius: var(--radius-lg);
+  padding: 0 var(--space-4);
+  margin-bottom: auto;
+}
+.welcome__check-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--color-border);
+}
+.welcome__check-row:last-child {
+  border-bottom: none;
+}
+.welcome__dot {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--color-surface);
+  border: 2px solid var(--color-border);
+  color: #fff;
+  font-size: var(--text-xs);
+  font-weight: var(--weight-bold);
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.welcome__check-row.is-done .welcome__dot {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+}
+.welcome__check-label {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-bold);
+  color: var(--color-ink);
+}
+.welcome__check-row.is-todo .welcome__check-label {
+  color: var(--color-ink-muted);
+  font-weight: var(--weight-semibold);
+}
+
+/* ---------- Actions ---------- */
+.welcome__actions {
+  padding-top: var(--space-5);
+}
+.welcome__cta-primary {
+  width: 100%;
+  background: var(--color-accent);
+  color: #fff;
+  border: none;
+  font-family: inherit;
+  font-size: var(--text-base);
+  font-weight: var(--weight-bold);
+  padding: var(--space-4);
+  border-radius: 16px;
+  cursor: pointer;
+  min-height: var(--tap-target-min);
+}
+.welcome__cta-primary:active {
+  transform: scale(0.98);
+}
+.welcome__cta-ghost {
+  display: block;
+  width: 100%;
+  text-align: center;
+  background: none;
+  border: none;
+  font-family: inherit;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-bold);
+  color: var(--color-ink-faint);
+  padding: var(--space-4) 0 var(--space-2);
+  cursor: pointer;
+  min-height: var(--tap-target-min);
+}

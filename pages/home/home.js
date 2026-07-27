@@ -3,6 +3,7 @@ import { ScheduleRepository } from "../../src/modules/schedule/schedule.reposito
 import { ClassRepository } from "../../src/modules/class/class.repository.js";
 import { StudentRepository } from "../../src/modules/student/student.repository.js";
 import { AttendanceRepository } from "../../src/modules/attendance/attendance.repository.js";
+import { SettingsRepository } from "../../src/modules/settings/settings.repository.js";
 import { toDateKey } from "../../src/core/date.js";
 import { AppBar, Card, Badge, Button, FloatingButton } from "../../src/components/components.js";
 import { StatCardGroup } from "../../src/components/statRing.js";
@@ -14,6 +15,7 @@ const scheduleRepo = new ScheduleRepository();
 const classRepo = new ClassRepository();
 const studentRepo = new StudentRepository();
 const attendanceRepo = new AttendanceRepository();
+const settingsRepo = new SettingsRepository();
 
 const app = document.getElementById("app");
 
@@ -263,6 +265,22 @@ async function render() {
 
 async function main() {
   await openDB();
+
+  // R7.2 / R8.4 — migrasi pengguna lama & routing awal app. Dihitung dari
+  // data asli (bukan disimpan terpisah), sama seperti checklist di R4.3/R8.2.
+  const [classCount, studentCount, scheduleCount] = await Promise.all([
+    classRepo.getAll().then((list) => list.length),
+    studentRepo.getAll().then((list) => list.length),
+    scheduleRepo.getAll().then((list) => list.length),
+  ]);
+  await settingsRepo.migrateIfNeeded({ classCount, studentCount, scheduleCount });
+
+  const config = await settingsRepo.getConfig();
+  if (!config.hasSeenOnboarding) {
+    window.location.href = "../welcome/index.html";
+    return;
+  }
+
   await runPage(app, render);
 }
 
