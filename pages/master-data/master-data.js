@@ -82,7 +82,7 @@ export function confirmDelete(message, doDelete) {
 export function confirmBulkDelete(count, doDeleteAll) {
   const modal = Modal({
     title: "Hapus Data",
-    body: `${count} item terpilih akan dihapus. Lanjutkan?`,
+    body: `Yakin hapus ${count} item? Tindakan ini tidak bisa dibatalkan.`,
     actions: [
       Button({ label: "Batal", variant: "secondary", onClick: () => modal.close() }),
       Button({

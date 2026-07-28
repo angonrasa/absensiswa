@@ -93,6 +93,26 @@ export async function renderStudentTab(container) {
   });
   toolbar.appendChild(selectToggleBtn);
 
+  // MVP 2 Milestone 5.3 — "Pilih Semua" hanya berlaku untuk siswa yang
+  // sedang terlihat (setelah filter pencarian/kelas), bukan seluruh siswa
+  // di semua kelas — sesuai apa yang guru lihat di layar saat itu.
+  // `visibleStudents` di-update tiap kali renderStudentList() jalan.
+  let visibleStudents = [];
+
+  const selectAllBtn = Button({
+    label: "Pilih Semua",
+    variant: "secondary",
+    onClick: () => {
+      const allSelected = visibleStudents.length > 0 && visibleStudents.every((s) => selectedIds.has(s.id));
+      if (allSelected) visibleStudents.forEach((s) => selectedIds.delete(s.id));
+      else visibleStudents.forEach((s) => selectedIds.add(s.id));
+      updateToolbar();
+      renderStudentList();
+    },
+  });
+  selectAllBtn.style.display = "none";
+  toolbar.appendChild(selectAllBtn);
+
   const bulkDeleteBtn = Button({
     label: "Hapus Terpilih",
     variant: "danger",
@@ -110,6 +130,9 @@ export async function renderStudentTab(container) {
 
   function updateToolbar() {
     selectToggleBtn.textContent = selectionMode ? "Batal Pilih" : "Pilih";
+    selectAllBtn.style.display = selectionMode ? "inline-flex" : "none";
+    const allSelected = visibleStudents.length > 0 && visibleStudents.every((s) => selectedIds.has(s.id));
+    selectAllBtn.textContent = allSelected ? "Batal Semua" : "Pilih Semua";
     bulkDeleteBtn.style.display = selectionMode ? "inline-flex" : "none";
     bulkDeleteBtn.textContent = `Hapus Terpilih (${selectedIds.size})`;
     bulkDeleteBtn.disabled = selectedIds.size === 0;
@@ -130,6 +153,14 @@ export async function renderStudentTab(container) {
       const matchesClass = !classId || student.classId === classId;
       return matchesQuery && matchesClass;
     });
+
+    visibleStudents = filtered;
+    // Guru bisa saja mengubah filter sambil mode pilih aktif — item yang
+    // sempat tercentang tapi jadi tidak terlihat lagi (di luar filter baru)
+    // tetap ada di selectedIds (tidak hilang diam-diam), tapi label "Pilih
+    // Semua" mengacu ke daftar yang terlihat saat ini. Refresh toolbar tiap
+    // render supaya statusnya tetap akurat.
+    updateToolbar();
 
     listContainer.innerHTML = "";
 

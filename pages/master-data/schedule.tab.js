@@ -62,6 +62,22 @@ export async function renderScheduleTab(container) {
   });
   toolbar.appendChild(selectToggleBtn);
 
+  // MVP 2 Milestone 5.3 — "Pilih Semua" berlaku untuk seluruh jadwal lintas
+  // hari (allSchedules), bukan cuma satu grup hari tertentu.
+  const selectAllBtn = Button({
+    label: "Pilih Semua",
+    variant: "secondary",
+    onClick: () => {
+      const allSelected = allSchedules.length > 0 && allSchedules.every((s) => selectedIds.has(s.id));
+      if (allSelected) selectedIds.clear();
+      else allSchedules.forEach((s) => selectedIds.add(s.id));
+      updateToolbar();
+      renderGroupedList();
+    },
+  });
+  selectAllBtn.style.display = "none";
+  toolbar.appendChild(selectAllBtn);
+
   const bulkDeleteBtn = Button({
     label: "Hapus Terpilih",
     variant: "danger",
@@ -79,6 +95,9 @@ export async function renderScheduleTab(container) {
 
   function updateToolbar() {
     selectToggleBtn.textContent = selectionMode ? "Batal Pilih" : "Pilih";
+    selectAllBtn.style.display = selectionMode ? "inline-flex" : "none";
+    const allSelected = allSchedules.length > 0 && allSchedules.every((s) => selectedIds.has(s.id));
+    selectAllBtn.textContent = allSelected ? "Batal Semua" : "Pilih Semua";
     bulkDeleteBtn.style.display = selectionMode ? "inline-flex" : "none";
     bulkDeleteBtn.textContent = `Hapus Terpilih (${selectedIds.size})`;
     bulkDeleteBtn.disabled = selectedIds.size === 0;

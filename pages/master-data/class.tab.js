@@ -51,6 +51,24 @@ export async function renderClassTab(container) {
   });
   toolbar.appendChild(selectToggleBtn);
 
+  // MVP 2 Milestone 5.3 — "Pilih Semua" berlaku untuk seluruh kelas (tidak
+  // ada filter di tab ini). Tombol yang sama berfungsi sebagai "Batal Semua"
+  // kalau semua item sudah tercentang, supaya guru punya jalan pintas cepat
+  // membatalkan seleksi penuh.
+  const selectAllBtn = Button({
+    label: "Pilih Semua",
+    variant: "secondary",
+    onClick: () => {
+      const allSelected = classes.length > 0 && classes.every((c) => selectedIds.has(c.id));
+      if (allSelected) selectedIds.clear();
+      else classes.forEach((c) => selectedIds.add(c.id));
+      updateToolbar();
+      renderList();
+    },
+  });
+  selectAllBtn.style.display = "none";
+  toolbar.appendChild(selectAllBtn);
+
   const bulkDeleteBtn = Button({
     label: "Hapus Terpilih",
     variant: "danger",
@@ -68,6 +86,9 @@ export async function renderClassTab(container) {
 
   function updateToolbar() {
     selectToggleBtn.textContent = selectionMode ? "Batal Pilih" : "Pilih";
+    selectAllBtn.style.display = selectionMode ? "inline-flex" : "none";
+    const allSelected = classes.length > 0 && classes.every((c) => selectedIds.has(c.id));
+    selectAllBtn.textContent = allSelected ? "Batal Semua" : "Pilih Semua";
     bulkDeleteBtn.style.display = selectionMode ? "inline-flex" : "none";
     bulkDeleteBtn.textContent = `Hapus Terpilih (${selectedIds.size})`;
     bulkDeleteBtn.disabled = selectedIds.size === 0;
