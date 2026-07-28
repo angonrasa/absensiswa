@@ -150,9 +150,22 @@ function renderTimelineList(container, entries, { selectionMode, selectedIds, on
 
     const info = document.createElement("span");
     info.className = "timeline-item__info";
+
+    // MVP 2 Milestone 3.2 — untuk status tidak hadir (izin/sakit/alpha) dengan
+    // materialTopic terisi, tampilkan baris kecil "Materi: {topic}" di bawah
+    // tanggal, sesuai Blueprint ("guru langsung mengetahui materi yang
+    // tertinggal"). Status "present" tidak perlu ditonjolkan.
+    const showMaterial = entry.status !== "present" && entry.materialTopic;
+    const materialLine = showMaterial
+      ? `<span class="timeline-item__material">Materi: ${escapeHtml(entry.materialTopic)}</span>`
+      : "";
+
     info.innerHTML = `
-      <span class="timeline-item__date">${formatDisplayDate(entry.date)}</span>
-      <span>${STATUS_LABEL[entry.status]}</span>
+      <span class="timeline-item__row">
+        <span class="timeline-item__date">${formatDisplayDate(entry.date)}</span>
+        <span>${STATUS_LABEL[entry.status]}</span>
+      </span>
+      ${materialLine}
     `;
     item.appendChild(info);
 

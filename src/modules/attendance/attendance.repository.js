@@ -170,6 +170,9 @@ export class AttendanceRepository {
         note: r.note,
         recordId: r.id,
         sessionId: r.attendanceSessionId,
+        // MVP 2 Milestone 3 — materi hari itu, dibaca dari session yang sudah
+        // diambil di atas, tidak perlu query tambahan.
+        materialTopic: sessionById[r.attendanceSessionId]?.materialTopic || "",
       }))
       .filter((entry) => entry.date)
       .sort((a, b) => a.date.localeCompare(b.date));
