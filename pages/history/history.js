@@ -4,7 +4,7 @@ import { ClassRepository } from "../../src/modules/class/class.repository.js";
 import { AttendanceRepository } from "../../src/modules/attendance/attendance.repository.js";
 import { formatDisplayDate } from "../../src/core/date.js";
 import { computeWarnings } from "../../src/modules/history/warning.service.js";
-import { filterTimeline } from "../../src/modules/history/history.service.js";
+import { filterTimeline, formatSessionRowSummary } from "../../src/modules/history/history.service.js";
 import { AppBar, BottomNav, Button, Card, Input, Modal, Select, showToast } from "../../src/components/components.js";
 import { showLoading, showError } from "../../src/components/pageState.js";
 import { escapeHtml } from "../../src/core/html.js";
@@ -232,29 +232,6 @@ function renderClassSessionPicker(container, classes) {
   classSelect.selectEl.addEventListener("change", renderSessionList);
 
   renderSessionList();
-}
-
-/**
- * Ringkasan singkat satu baris sesi untuk daftar "Per Kelas" (MVP 2
- * Milestone 4.4), contoh: "Hadir 28, Alpha 2 · Materi: Hukum II Newton".
- * Hadir selalu ditampilkan; Izin/Sakit/Alpha hanya kalau > 0 supaya baris
- * tetap ringkas untuk sesi yang semua siswanya hadir. Materi dipotong
- * pendek — ini cuma sekilas pindai, detail lengkap ada di rekap sesi (4.3).
- */
-function formatSessionRowSummary(summary, materialTopic) {
-  const parts = [`Hadir ${summary.present}`];
-  if (summary.permission > 0) parts.push(`Izin ${summary.permission}`);
-  if (summary.sick > 0) parts.push(`Sakit ${summary.sick}`);
-  if (summary.absent > 0) parts.push(`Alpha ${summary.absent}`);
-
-  let text = parts.join(", ");
-  if (materialTopic) {
-    const MAX_LEN = 40;
-    const snippet =
-      materialTopic.length > MAX_LEN ? `${materialTopic.slice(0, MAX_LEN).trim()}…` : materialTopic;
-    text += ` · Materi: ${snippet}`;
-  }
-  return text;
 }
 
 /* ---------------- Rekap Satu Sesi, Read-Only (MVP 2 Milestone 4.3) ---------------- */
