@@ -7,6 +7,7 @@ import {
 } from "../../src/modules/backup/backup.service.js";
 import { AppBar, BottomNav, Button, Modal, MenuGroup, MenuRow, showToast } from "../../src/components/components.js";
 import { runPage } from "../../src/core/pageState.js";
+import { renderOrphanCleanupGroup } from "../../src/core/orphanCleanupUI.js";
 
 const app = document.getElementById("app");
 
@@ -127,6 +128,14 @@ async function render() {
 
   main.appendChild(dataGroup);
   main.appendChild(otherGroup);
+
+  // R12.2 — hanya tampil kalau ada Jadwal/AttendanceSession/AttendanceRecord
+  // yang classId/studentId-nya sudah tidak ada di Data Master (lihat
+  // orphanCleanup.js). Ditaruh setelah "Lainnya" supaya tidak dikira bagian
+  // dari Reset Semua Data (dua aksi berbeda: ini hapus terarah, bukan total).
+  const orphanGroup = await renderOrphanCleanupGroup();
+  if (orphanGroup) main.appendChild(orphanGroup);
+
   main.appendChild(importInput);
 
   app.appendChild(main);

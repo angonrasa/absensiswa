@@ -5,11 +5,12 @@ import { StudentRepository } from "../../src/modules/student/student.repository.
 import { AttendanceRepository } from "../../src/modules/attendance/attendance.repository.js";
 import { SettingsRepository } from "../../src/modules/settings/settings.repository.js";
 import { toDateKey } from "../../src/core/date.js";
-import { AppBar, BottomNav, Card, Badge, Button, FloatingButton } from "../../src/components/components.js";
+import { AppBar, BottomNav, Card, Badge, Button, FloatingButton, Modal, showToast } from "../../src/components/components.js";
 import { StatCardGroup } from "../../src/components/statRing.js";
 import { computeSetupChecklist, isSetupComplete } from "../../src/core/setupChecklist.js";
 import { runPage } from "../../src/core/pageState.js";
 import { escapeHtml } from "../../src/core/html.js";
+import { deleteScheduleAndRelated } from "../../src/core/orphanCleanup.js";
 
 const scheduleRepo = new ScheduleRepository();
 const classRepo = new ClassRepository();
@@ -281,8 +282,15 @@ async function render() {
 
   for (const sch of schedules) {
     const cls = classById[sch.classId];
-    const session = await attendanceRepo.findSession(sch.classId, dateKey);
-    if (!session && !firstUnattended) firstUnattended = sch;
+    // R12.4 — jadwal yatim: classId sudah tidak ada di Class (mis. kelas
+    // dihapus dari Data Master tapi Schedule sengaja tidak ikut cascade,
+    // lihat 01-Arsitektur-Pendamping.md). Sebelumnya kartu ini tetap bisa
+    // diklik dan berujung "gagal memuat halaman absensi" karena Absensi
+    // butuh data Class yang valid. Sekarang kartu tidak dibuat pressable,
+    // dan tombol Hapus disediakan langsung di sini (R12.4).
+    const isOrphan = !cls;
+    const session = isOrphan ? null : await attendanceRepo.findSession(sch.classId, dateKey);
+    if (!isOrphan && !session && !firstUnattended) firstUnattended = sch;
 
     const row = document.createElement("div");
     row.className = "schedule-row";
@@ -301,23 +309,58 @@ async function render() {
     const info = document.createElement("div");
     info.className = "schedule-main";
     info.innerHTML = `<span class="schedule-subject">${escapeHtml(sch.subject)}</span><span class="schedule-class">${
-      cls ? escapeHtml(cls.name) : "Kelas tidak ditemukan"
+      isOrphan ? "Kelas tidak ditemukan" : escapeHtml(cls.name)
     }</span>`;
     row.appendChild(info);
 
-    row.appendChild(
-      Badge({
-        status: session ? "present" : null,
-        label: session ? "Sudah Diabsen" : "Belum Diabsen",
-      })
-    );
+    if (isOrphan) {
+      const deleteBtn = Button({
+        label: "Hapus",
+        variant: "danger",
+        onClick: (event) => {
+          // Cegah klik ini diteruskan ke Card (yang untuk jadwal orphan
+          // memang tidak pressable, tapi stopPropagation tetap aman kalau
+          // struktur Card berubah nanti).
+          event.stopPropagation();
+
+          const modal = Modal({
+            title: "Hapus Jadwal Yatim?",
+            body: "Kelas jadwal ini sudah tidak ada di Data Master, jadi tidak bisa dipakai untuk absensi. Sesi & record absensi terkait (jika ada) akan ikut terhapus. Tindakan ini tidak bisa dibatalkan.",
+            actions: [
+              Button({ label: "Batal", variant: "secondary", onClick: () => modal.close() }),
+              Button({
+                label: "Ya, Hapus",
+                variant: "danger",
+                onClick: async () => {
+                  await deleteScheduleAndRelated(sch.id);
+                  modal.close();
+                  showToast({ message: "Jadwal yatim berhasil dihapus." });
+                  render();
+                },
+              }),
+            ],
+          });
+          document.body.appendChild(modal);
+        },
+      });
+      row.appendChild(deleteBtn);
+    } else {
+      row.appendChild(
+        Badge({
+          status: session ? "present" : null,
+          label: session ? "Sudah Diabsen" : "Belum Diabsen",
+        })
+      );
+    }
 
     const card = Card({
       content: row,
-      pressable: true,
-      onClick: () => {
-        window.location.href = `../attendance/index.html?classId=${sch.classId}&scheduleId=${sch.id}`;
-      },
+      pressable: !isOrphan,
+      onClick: isOrphan
+        ? undefined
+        : () => {
+            window.location.href = `../attendance/index.html?classId=${sch.classId}&scheduleId=${sch.id}`;
+          },
     });
     list.appendChild(card);
   }
