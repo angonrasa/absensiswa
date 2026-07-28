@@ -1,4 +1,4 @@
-.home-date {
+l.home-date {
   color: var(--color-ink-muted);
   font-size: var(--text-sm);
   margin-bottom: var(--space-1);
@@ -190,4 +190,22 @@
   color: var(--color-ink-muted);
   margin-top: 1px;
   font-weight: var(--weight-medium);
+}
+
+/* MVP2 Milestone 7.6 — Pengingat Backup. Gaya ringkas sama seperti pola
+   "Peringatan Dini" di Blueprint (banner, bukan modal yang menyela alur). */
+.backup-reminder {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  margin-bottom: var(--space-4);
+  border-radius: var(--radius-md, 12px);
+  background: var(--color-warning-soft, #FEF3C7);
+  color: var(--color-ink);
+  font-size: var(--text-sm);
+}
+.backup-reminder__text {
+  flex: 1;
 }

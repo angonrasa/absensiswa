@@ -109,9 +109,19 @@ export function AppBar({ title, leftAction, rightAction }) {
   return bar;
 }
 
-export function MenuRow({ icon, label, sub, danger = false, chevron = true, onClick }) {
-  const row = document.createElement("button");
-  row.type = "button";
+/**
+ * MVP2 M7.4 — parameter baru `right`: elemen custom di kanan baris (mis.
+ * Toggle) menggantikan chevron/onClick. Kalau `right` diisi, baris
+ * dirender sebagai <div> (bukan <button>) supaya tidak ada kontrol
+ * interaktif bersarang di dalam <button> (invalid HTML + masalah
+ * aksesibilitas) — baris seperti ini memang bukan aksi "tap satu baris",
+ * hanya elemen `right`-nya yang interaktif.
+ *
+ * Semua pemanggilan lama (tanpa `right`) tidak berubah sama sekali.
+ */
+export function MenuRow({ icon, label, sub, danger = false, chevron = true, right = null, onClick }) {
+  const row = document.createElement(right ? "div" : "button");
+  if (!right) row.type = "button";
   row.className = `menu-row${danger ? " menu-row--danger" : ""}`;
 
   if (icon) {
@@ -133,7 +143,9 @@ export function MenuRow({ icon, label, sub, danger = false, chevron = true, onCl
   }
   row.appendChild(textEl);
 
-  if (chevron) {
+  if (right) {
+    row.appendChild(right);
+  } else if (chevron) {
     const chevronEl = document.createElement("span");
     chevronEl.className = "menu-row__chevron";
     chevronEl.setAttribute("aria-hidden", "true");
@@ -141,7 +153,7 @@ export function MenuRow({ icon, label, sub, danger = false, chevron = true, onCl
     row.appendChild(chevronEl);
   }
 
-  if (onClick) row.addEventListener("click", onClick);
+  if (onClick && !right) row.addEventListener("click", onClick);
   return row;
 }
 
@@ -158,6 +170,35 @@ export function MenuGroup({ title, rows = [] }) {
 
   rows.forEach((row) => group.appendChild(row));
   return group;
+}
+
+/**
+ * MVP2 M7.4 — switch on/off sederhana (checkbox yang di-style ulang lewat
+ * CSS, bukan library), dipakai sebagai `right` pada MenuRow (baris "Auto
+ * Backup" di Pengaturan). Style-nya ditaruh di pages/settings/settings.css
+ * (bukan components.css) karena untuk MVP 2 baru dipakai di satu halaman —
+ * lihat catatan di settings.css. Kalau nanti dipakai di halaman lain,
+ * pindahkan style itu ke sini.
+ */
+export function Toggle({ checked = false, onChange, ariaLabel = "" }) {
+  const label = document.createElement("label");
+  label.className = "toggle";
+  if (ariaLabel) label.setAttribute("aria-label", ariaLabel);
+
+  const input = document.createElement("input");
+  input.type = "checkbox";
+  input.className = "toggle__input";
+  input.checked = checked;
+  if (onChange) input.addEventListener("change", (e) => onChange(e.target.checked));
+  label.appendChild(input);
+
+  const track = document.createElement("span");
+  track.className = "toggle__track";
+  track.setAttribute("aria-hidden", "true");
+  label.appendChild(track);
+
+  label.inputEl = input;
+  return label;
 }
 
 export function FloatingButton({ icon = "+", onClick }) {

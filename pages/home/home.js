@@ -4,6 +4,7 @@ import { ClassRepository } from "../../src/modules/class/class.repository.js";
 import { StudentRepository } from "../../src/modules/student/student.repository.js";
 import { AttendanceRepository } from "../../src/modules/attendance/attendance.repository.js";
 import { SettingsRepository } from "../../src/modules/settings/settings.repository.js";
+import { checkBackupReminder, exportToFile } from "../../src/modules/backup/backup.service.js";
 import { toDateKey } from "../../src/core/date.js";
 import { AppBar, BottomNav, Card, Badge, Button, FloatingButton, Modal, showToast } from "../../src/components/components.js";
 import { StatCardGroup } from "../../src/components/statRing.js";
@@ -54,6 +55,38 @@ function ContinueSetupButton(variant = "primary") {
       window.location.href = "../onboarding-wizard/index.html";
     },
   });
+}
+
+/**
+ * MVP2 Milestone 7.6 — banner ringkas (gaya sama seperti pola "Peringatan
+ * Dini" di Blueprint), muncul kalau Auto Backup mati DAN sudah >= 3 hari
+ * absensi berjalan tanpa backup (dihitung di backup.service.js lewat
+ * checkBackupReminder). Tombol "Backup Sekarang" memanggil alur Export
+ * manual yang sudah ada (Blueprint MVP 1) — tidak ada mekanisme backup
+ * baru yang ditambahkan di sini.
+ */
+function renderBackupReminder() {
+  const banner = document.createElement("div");
+  banner.className = "backup-reminder";
+
+  const text = document.createElement("span");
+  text.className = "backup-reminder__text";
+  text.textContent = "⚠ Sudah beberapa hari absensi belum di-backup.";
+  banner.appendChild(text);
+
+  banner.appendChild(
+    Button({
+      label: "Backup Sekarang",
+      variant: "secondary",
+      onClick: async () => {
+        await exportToFile();
+        showToast({ message: "Backup berhasil diunduh." });
+        render();
+      },
+    })
+  );
+
+  return banner;
 }
 
 /**
@@ -159,6 +192,15 @@ async function render() {
   dateEl.className = "home-date";
   dateEl.textContent = formatFullDate();
   main.appendChild(dateEl);
+
+  // MVP2 Milestone 7.6 — pengingat backup. Dicek lebih dulu (sebelum cek
+  // classes.length) supaya tetap tampil di semua kondisi Beranda, termasuk
+  // saat tidak ada jadwal hari ini — guru tetap perlu tahu meski hari ini
+  // libur. Untuk kelas benar-benar kosong (belum ada AttendanceSession
+  // sama sekali), checkBackupReminder() otomatis false, jadi aman.
+  if (await checkBackupReminder()) {
+    main.appendChild(renderBackupReminder());
+  }
 
   const today = new Date();
   const dateKey = toDateKey(today);
@@ -365,9 +407,7 @@ async function main() {
   await settingsRepo.migrateIfNeeded({ classCount, studentCount, scheduleCount });
 
   const config = await settingsRepo.getConfig();
-  
- 
-  
+
   if (!config.hasSeenOnboarding) {
     window.location.href = "../welcome/index.html";
     return;
@@ -377,4 +417,3 @@ async function main() {
 }
 
 main();
-

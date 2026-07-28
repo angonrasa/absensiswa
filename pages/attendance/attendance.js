@@ -3,6 +3,7 @@ import { StudentRepository } from "../../src/modules/student/student.repository.
 import { ClassRepository } from "../../src/modules/class/class.repository.js";
 import { ScheduleRepository } from "../../src/modules/schedule/schedule.repository.js";
 import { AttendanceRepository } from "../../src/modules/attendance/attendance.repository.js";
+import { runAutoBackupIfDue } from "../../src/modules/backup/backup.service.js";
 import { toDateKey, formatDisplayDate } from "../../src/core/date.js";
 import { AppBar, Button } from "../../src/components/components.js";
 import { showLoading, showError } from "../../src/components/pageState.js";
@@ -158,6 +159,13 @@ async function handleSave() {
     materialTopic: trimmedTopic,
     materialNote: trimmedNote,
   });
+
+  // MVP2 Milestone 7.3 — fire-and-forget, TIDAK di-await. Auto backup
+  // (kalau aktif & sudah waktunya) berjalan di belakang layar, tidak boleh
+  // menunda tampilnya ringkasan absensi (Blueprint: harus tetap < 30 detik).
+  // Gagal pun tidak akan melempar error ke sini — sudah ditangani di dalam
+  // runAutoBackupIfDue() (backup.service.js).
+  runAutoBackupIfDue();
 
   renderResult(summary, trimmedTopic);
 }

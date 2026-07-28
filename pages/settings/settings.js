@@ -5,11 +5,22 @@ import {
   readFileAsJSON,
   validateBackup,
 } from "../../src/modules/backup/backup.service.js";
-import { AppBar, BottomNav, Button, Modal, MenuGroup, MenuRow, showToast } from "../../src/components/components.js";
+import { AppBar, BottomNav, Button, Modal, MenuGroup, MenuRow, Toggle, showToast } from "../../src/components/components.js";
 import { runPage } from "../../src/components/pageState.js";
 import { renderOrphanCleanupGroup } from "../../src/core/orphanCleanupUI.js";
+import { SettingsRepository } from "../../src/modules/settings/settings.repository.js";
 
 const app = document.getElementById("app");
+const settingsRepo = new SettingsRepository();
+
+/** MVP2 M7.4 — sub-label ringkas untuk baris Auto Backup. */
+function formatLastBackup(iso) {
+  if (!iso) return "Belum pernah backup";
+  const date = new Date(iso);
+  const tanggal = date.toLocaleDateString("id-ID", { day: "numeric", month: "short" });
+  const jam = date.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" });
+  return `Backup terakhir: ${tanggal}, ${jam}`;
+}
 
 async function render() {
   app.innerHTML = "";
@@ -17,6 +28,12 @@ async function render() {
   app.appendChild(BottomNav({ active: "pengaturan" }));
 
   const main = document.createElement("main");
+
+  // MVP2 M7.4 — dibaca sekali di awal render, dipakai untuk isi awal Toggle
+  // Auto Backup + sub-label "Backup terakhir". Aman untuk data lama:
+  // getConfig() sudah menangani default kalau field ini belum pernah ada
+  // (lihat settings.repository.js).
+  const config = await settingsRepo.getConfig();
 
   // --- Import: input file tersembunyi, dipicu dari menu row ---
   const importInput = document.createElement("input");
@@ -61,6 +78,21 @@ async function render() {
     document.body.appendChild(modal);
   });
 
+  // MVP2 M7.4 — toggle Auto Backup. `right` di MenuRow menggantikan
+  // chevron, jadi baris ini bukan tombol (tidak ada aksi tap-baris), hanya
+  // switch-nya yang interaktif. Tidak ada modal konfirmasi (mematikan
+  // Auto Backup bukan aksi merusak data, sesuai roadmap 7.4).
+  const autoBackupToggle = Toggle({
+    checked: config.autoBackupEnabled,
+    ariaLabel: "Auto Backup",
+    onChange: async (checked) => {
+      await settingsRepo.setAutoBackupEnabled(checked);
+      showToast({
+        message: checked ? "Auto Backup diaktifkan." : "Auto Backup dimatikan.",
+      });
+    },
+  });
+
   // --- Grup: Data ---
   const dataGroup = MenuGroup({
     title: "Data",
@@ -73,6 +105,7 @@ async function render() {
         onClick: async () => {
           await exportToFile();
           showToast({ message: "Backup berhasil diunduh." });
+          render(); // refresh sub-label "Backup terakhir"
         },
       }),
       MenuRow({
@@ -81,6 +114,12 @@ async function render() {
         sub: "Pulihkan data dari file backup, menimpa data saat ini",
         chevron: false,
         onClick: () => importInput.click(),
+      }),
+      MenuRow({
+        icon: "🔄",
+        label: "Auto Backup",
+        sub: formatLastBackup(config.lastBackupAt),
+        right: autoBackupToggle,
       }),
     ],
   });
