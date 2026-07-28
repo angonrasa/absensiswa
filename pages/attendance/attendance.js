@@ -28,6 +28,11 @@ let students = [];
 let currentClass = null;
 let currentSchedule = null;
 
+// MVP 2 Milestone 2 — materi hari ini (opsional, tidak boleh mengganggu absensi < 30 detik).
+let materialTopic = "";
+let materialNote = "";
+let noteExpanded = false;
+
 function renderMissingParam() {
   app.innerHTML = "";
   app.appendChild(AppBar({ title: "Absensi" }));
@@ -85,22 +90,79 @@ function renderList() {
   });
 }
 
+function renderMaterialSection() {
+  const section = document.createElement("div");
+  section.className = "material-section";
+
+  const label = document.createElement("label");
+  label.className = "material-section__label";
+  label.setAttribute("for", "material-topic-input");
+  label.textContent = "Materi hari ini (opsional)";
+  section.appendChild(label);
+
+  const topicInput = document.createElement("input");
+  topicInput.type = "text";
+  topicInput.id = "material-topic-input";
+  topicInput.className = "material-section__input";
+  topicInput.placeholder = "Contoh: Hukum II Newton";
+  topicInput.value = materialTopic;
+  topicInput.addEventListener("input", (e) => {
+    materialTopic = e.target.value;
+  });
+  section.appendChild(topicInput);
+
+  const noteWrap = document.createElement("div");
+  noteWrap.className = "material-section__note-wrap";
+  noteWrap.hidden = !noteExpanded;
+
+  const noteInput = document.createElement("textarea");
+  noteInput.id = "material-note-input";
+  noteInput.className = "material-section__textarea";
+  noteInput.rows = 2;
+  noteInput.placeholder = "Catatan tambahan (opsional)";
+  noteInput.value = materialNote;
+  noteInput.addEventListener("input", (e) => {
+    materialNote = e.target.value;
+  });
+  noteWrap.appendChild(noteInput);
+
+  const toggleLink = document.createElement("button");
+  toggleLink.type = "button";
+  toggleLink.className = "material-section__toggle";
+  toggleLink.textContent = noteExpanded ? "− Sembunyikan catatan" : "+ Tambah catatan";
+  toggleLink.addEventListener("click", () => {
+    noteExpanded = !noteExpanded;
+    noteWrap.hidden = !noteExpanded;
+    toggleLink.textContent = noteExpanded ? "− Sembunyikan catatan" : "+ Tambah catatan";
+    if (noteExpanded) noteInput.focus();
+  });
+  section.appendChild(toggleLink);
+  section.appendChild(noteWrap);
+
+  return section;
+}
+
 async function handleSave() {
   const saveBtn = document.getElementById("save-btn");
   saveBtn.disabled = true;
   saveBtn.textContent = "Menyimpan...";
+
+  const trimmedTopic = materialTopic.trim();
+  const trimmedNote = materialNote.trim();
 
   const summary = await attendanceRepo.saveAttendance({
     classId,
     scheduleId,
     date: dateKey,
     statusByStudentId,
+    materialTopic: trimmedTopic,
+    materialNote: trimmedNote,
   });
 
-  renderResult(summary);
+  renderResult(summary, trimmedTopic);
 }
 
-function renderResult(summary) {
+function renderResult(summary, materialTopic = "") {
   app.innerHTML = "";
   app.appendChild(AppBar({ title: "Absensi Tersimpan" }));
 
@@ -110,6 +172,13 @@ function renderResult(summary) {
   heading.textContent = `${currentClass?.name || ""} — Selesai`;
   heading.style.marginBottom = "var(--space-4)";
   main.appendChild(heading);
+
+  if (materialTopic) {
+    const materialLine = document.createElement("p");
+    materialLine.className = "result-material";
+    materialLine.textContent = `Materi: ${materialTopic}`;
+    main.appendChild(materialLine);
+  }
 
   const grid = document.createElement("div");
   grid.className = "result-summary";
@@ -159,6 +228,8 @@ async function render() {
     return;
   }
 
+  main.appendChild(renderMaterialSection());
+
   const list = document.createElement("div");
   list.id = "student-list";
   list.className = "student-list";
@@ -203,7 +274,18 @@ async function main() {
           statusByStudentId[r.studentId] = r.status;
         }
       });
+      // Materi hari ini sudah pernah diisi untuk sesi ini — muat kembali, jangan reset.
+      materialTopic = existingSession.materialTopic || "";
+      materialNote = existingSession.materialNote || "";
+    } else {
+      // Default = materi terakhir untuk kelas ini (Prinsip Desain "Default = Hadir"
+      // diterapkan juga di sini: guru cuma perlu ubah kalau memang beda).
+      const recentTopics = await attendanceRepo.getRecentMaterialTopics(classId, 1);
+      materialTopic = recentTopics[0] || "";
     }
+    // Kalau catatan sudah terisi (dari sesi tersimpan), tampilkan langsung, jangan
+    // disembunyikan di balik toggle — supaya guru tidak kehilangan isi yang sudah ada.
+    noteExpanded = Boolean(materialNote);
 
     await render();
   } catch (err) {
