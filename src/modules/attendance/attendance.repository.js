@@ -27,6 +27,20 @@ export class AttendanceRepository {
   }
 
   /**
+   * Semua AttendanceSession untuk satu kelas, terurut tanggal terbaru dulu
+   * (MVP 2 Milestone 4.2 — Riwayat per Kelas, dibutuhkan supaya tab "Per
+   * Kelas" di Milestone 4.1 punya data untuk ditampilkan). Query baru,
+   * memakai index `classId` yang sudah ada (dipakai juga oleh
+   * getRecentMaterialTopics), tidak ada perubahan schema.
+   */
+  async getSessionsByClass(classId) {
+    const sessions = await withStore(STORE.ATTENDANCE_SESSION, "readonly", (store) =>
+      requestToPromise(store.index("classId").getAll(classId))
+    );
+    return sessions.sort((a, b) => b.date.localeCompare(a.date));
+  }
+
+  /**
    * Beberapa materialTopic terakhir (tidak kosong) dari sesi-sesi kelas yang
    * sama — dipakai sebagai default/saran input materi (MVP 2 Milestone 2).
    * Bukan tabel baru, hanya query ke AttendanceSession yang sudah ada.

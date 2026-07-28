@@ -1,6 +1,127 @@
 .history-header { padding: 0 var(--space-4) var(--space-2); }
 .history-header__subtitle { font-size: var(--text-sm); color: var(--color-ink-muted); }
 
+/* MVP 2 Milestone 4.1 — tab "Per Siswa" / "Per Kelas" */
+.history-mode-tabs {
+  display: flex;
+  gap: var(--space-2);
+  margin-bottom: var(--space-4);
+}
+.history-mode-tabs .btn {
+  flex: 1;
+  background: transparent;
+  color: var(--color-ink-muted);
+  border: 1px solid var(--color-border);
+}
+.history-mode-tabs__btn--active {
+  background: var(--color-primary-tint, var(--color-present-tint));
+  color: var(--color-primary, var(--color-present));
+  border-color: var(--color-primary, var(--color-present));
+  font-weight: var(--weight-medium);
+}
+
+.class-session-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.class-session-row {
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+.class-session-row__date {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  color: var(--color-ink);
+}
+
+/* MVP 2 Milestone 4.3 — baris tanggal jadi tautan ke rekap sesi */
+.class-session-row--pressable {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  cursor: pointer;
+}
+.class-session-row__chevron {
+  color: var(--color-ink-muted);
+  font-size: var(--text-lg);
+  flex-shrink: 0;
+}
+
+/* MVP 2 Milestone 4.4 — ringkasan singkat ("Hadir 28, Alpha 2" + materi)
+   di bawah tanggal, supaya guru bisa pindai cepat tanpa buka satu-satu. */
+.class-session-row__main {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.class-session-row__summary {
+  font-size: var(--text-xs);
+  color: var(--color-ink-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* MVP 2 Milestone 4.3 — halaman rekap satu sesi (read-only) */
+.session-recap__back {
+  display: inline-block;
+  font-size: var(--text-sm);
+  color: var(--color-ink-muted);
+  text-decoration: none;
+  margin-bottom: var(--space-2);
+  cursor: pointer;
+}
+
+.session-recap-material {
+  background: var(--color-surface-tint, var(--color-present-tint));
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+  margin-bottom: var(--space-5);
+}
+.session-recap-material__topic {
+  font-weight: var(--weight-medium);
+  color: var(--color-ink);
+}
+.session-recap-material__note {
+  margin-top: var(--space-1);
+  font-size: var(--text-sm);
+  color: var(--color-ink-muted);
+  overflow-wrap: anywhere;
+}
+
+.session-recap-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.session-recap-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+}
+.session-recap-row__name {
+  font-size: var(--text-sm);
+  color: var(--color-ink);
+}
+.session-recap-row__status {
+  font-size: var(--text-xs);
+  font-weight: var(--weight-medium);
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-full, 999px);
+}
+.session-recap-row--present    .session-recap-row__status { background: var(--color-present-tint);    color: var(--color-present); }
+.session-recap-row--permission .session-recap-row__status { background: var(--color-permission-tint); color: var(--color-permission); }
+.session-recap-row--sick       .session-recap-row__status { background: var(--color-sick-tint);       color: var(--color-sick); }
+.session-recap-row--absent     .session-recap-row__status { background: var(--color-absent-tint);     color: var(--color-absent); }
+
 .warning-box {
   display: flex;
   flex-direction: column;

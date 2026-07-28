@@ -18,8 +18,15 @@ const STATUS_LABEL = { present: "Hadir", permission: "Izin", sick: "Sakit", abse
 const app = document.getElementById("app");
 const params = new URLSearchParams(window.location.search);
 const studentId = params.get("studentId");
+// MVP 2 Milestone 4.3 — routing ketiga: buka satu sesi (read-only) dari
+// tab "Per Kelas" (4.1), tanpa perlu tahu/pilih siswa dulu.
+const sessionId = params.get("sessionId");
 
-/* ---------------- Student Picker (tanpa studentId) ---------------- */
+/* ---------------- Picker Root (tanpa studentId) ---------------- */
+/* MVP 2 Milestone 4.1 — dua cara masuk: "Per Siswa" (yang sudah ada) dan
+   "Per Kelas" (baru: pilih kelas → daftar sesi absensi, tanggal terbaru
+   dulu). Tidak ada halaman baru, cukup tab di halaman Riwayat yang sudah
+   ada. */
 
 async function renderPicker() {
   app.innerHTML = "";
@@ -32,9 +39,50 @@ async function renderPicker() {
   const classById = Object.fromEntries(classes.map((c) => [c.id, c]));
   const allStudents = (await Promise.all(classes.map((c) => studentRepo.getByClass(c.id)))).flat();
 
-  if (allStudents.length === 0) {
-    main.innerHTML = `<p class="empty-state">Belum ada data siswa.</p>`;
+  if (classes.length === 0) {
+    main.innerHTML = `<p class="empty-state">Belum ada data kelas atau siswa.</p>`;
     app.appendChild(main);
+    return;
+  }
+
+  const tabBar = document.createElement("div");
+  tabBar.className = "history-mode-tabs";
+  const studentTabBtn = Button({ label: "Per Siswa", variant: "secondary" });
+  const classTabBtn = Button({ label: "Per Kelas", variant: "secondary" });
+  tabBar.appendChild(studentTabBtn);
+  tabBar.appendChild(classTabBtn);
+  main.appendChild(tabBar);
+
+  const contentContainer = document.createElement("div");
+  main.appendChild(contentContainer);
+
+  function setActiveTab(mode) {
+    studentTabBtn.classList.toggle("history-mode-tabs__btn--active", mode === "student");
+    classTabBtn.classList.toggle("history-mode-tabs__btn--active", mode === "class");
+  }
+
+  function switchMode(mode) {
+    setActiveTab(mode);
+    contentContainer.innerHTML = "";
+    if (mode === "student") {
+      renderStudentPicker(contentContainer, classes, classById, allStudents);
+    } else {
+      renderClassSessionPicker(contentContainer, classes);
+    }
+  }
+
+  studentTabBtn.addEventListener("click", () => switchMode("student"));
+  classTabBtn.addEventListener("click", () => switchMode("class"));
+
+  switchMode("student");
+  app.appendChild(main);
+}
+
+/* ---------------- Tab: Per Siswa ---------------- */
+
+function renderStudentPicker(container, classes, classById, allStudents) {
+  if (allStudents.length === 0) {
+    container.innerHTML = `<p class="empty-state">Belum ada data siswa.</p>`;
     return;
   }
 
@@ -42,7 +90,7 @@ async function renderPicker() {
   hint.style.color = "var(--color-ink-muted)";
   hint.style.marginBottom = "var(--space-4)";
   hint.textContent = "Pilih siswa untuk melihat riwayat kehadirannya.";
-  main.appendChild(hint);
+  container.appendChild(hint);
 
   const filterBar = document.createElement("div");
   filterBar.className = "filter-row";
@@ -54,10 +102,10 @@ async function renderPicker() {
   });
   filterBar.appendChild(searchInput);
   filterBar.appendChild(classFilter);
-  main.appendChild(filterBar);
+  container.appendChild(filterBar);
 
   const listContainer = document.createElement("div");
-  main.appendChild(listContainer);
+  container.appendChild(listContainer);
 
   function renderPickerList() {
     const query = searchInput.inputEl.value.trim().toLowerCase();
@@ -102,6 +150,201 @@ async function renderPicker() {
   classFilter.selectEl.addEventListener("change", renderPickerList);
 
   renderPickerList();
+}
+
+/* ---------------- Tab: Per Kelas (MVP 2 Milestone 4.1) ---------------- */
+
+function renderClassSessionPicker(container, classes) {
+  const hint = document.createElement("p");
+  hint.style.color = "var(--color-ink-muted)";
+  hint.style.marginBottom = "var(--space-4)";
+  hint.textContent = "Pilih kelas untuk melihat daftar sesi absensi, tanpa perlu tahu nama siswa dulu.";
+  container.appendChild(hint);
+
+  const filterBar = document.createElement("div");
+  filterBar.className = "filter-row";
+  const classSelect = Select({
+    label: "Kelas",
+    value: "",
+    options: [{ value: "", label: "Pilih Kelas" }, ...classes.map((c) => ({ value: c.id, label: c.name }))],
+  });
+  filterBar.appendChild(classSelect);
+  container.appendChild(filterBar);
+
+  const sessionListContainer = document.createElement("div");
+  container.appendChild(sessionListContainer);
+
+  async function renderSessionList() {
+    const classId = classSelect.selectEl.value;
+    sessionListContainer.innerHTML = "";
+
+    if (!classId) {
+      sessionListContainer.innerHTML = `<p class="empty-state">Pilih kelas untuk melihat daftar sesi.</p>`;
+      return;
+    }
+
+    sessionListContainer.innerHTML = `<p class="empty-state">Memuat sesi...</p>`;
+    const sessions = await attendanceRepo.getSessionsByClass(classId);
+
+    // MVP 2 Milestone 4.4 — ringkasan kecil per baris ("Hadir 28, Alpha 2" +
+    // potongan materi kalau ada), supaya guru bisa pindai cepat tanpa harus
+    // klik satu-satu. Ambil semua record sesi sekaligus (bukan query baru,
+    // getRecordsBySession() sudah ada sejak Milestone 4.3).
+    const recordsBySession = await Promise.all(
+      sessions.map((session) => attendanceRepo.getRecordsBySession(session.id))
+    );
+
+    sessionListContainer.innerHTML = "";
+
+    if (sessions.length === 0) {
+      sessionListContainer.innerHTML = `<p class="empty-state">Belum ada sesi absensi untuk kelas ini.</p>`;
+      return;
+    }
+
+    const list = document.createElement("div");
+    list.className = "class-session-list";
+
+    // Sesi sudah terurut tanggal terbaru dulu dari getSessionsByClass().
+    // MVP 2 Milestone 4.3 — tiap baris tanggal jadi tautan ke halaman rekap
+    // sesi (read-only), bukan cuma daftar tanpa aksi.
+    sessions.forEach((session, idx) => {
+      const summary = attendanceRepo.buildSummary(recordsBySession[idx]);
+      const summaryText = formatSessionRowSummary(summary, session.materialTopic);
+
+      const row = document.createElement("div");
+      row.className = "class-session-row class-session-row--pressable";
+      row.innerHTML = `
+        <span class="class-session-row__main">
+          <span class="class-session-row__date">${formatDisplayDate(session.date)}</span>
+          <span class="class-session-row__summary">${escapeHtml(summaryText)}</span>
+        </span>
+        <span class="class-session-row__chevron" aria-hidden="true">›</span>
+      `;
+      row.addEventListener("click", () => {
+        window.location.href = `./index.html?sessionId=${session.id}`;
+      });
+      list.appendChild(row);
+    });
+
+    sessionListContainer.appendChild(list);
+  }
+
+  classSelect.selectEl.addEventListener("change", renderSessionList);
+
+  renderSessionList();
+}
+
+/**
+ * Ringkasan singkat satu baris sesi untuk daftar "Per Kelas" (MVP 2
+ * Milestone 4.4), contoh: "Hadir 28, Alpha 2 · Materi: Hukum II Newton".
+ * Hadir selalu ditampilkan; Izin/Sakit/Alpha hanya kalau > 0 supaya baris
+ * tetap ringkas untuk sesi yang semua siswanya hadir. Materi dipotong
+ * pendek — ini cuma sekilas pindai, detail lengkap ada di rekap sesi (4.3).
+ */
+function formatSessionRowSummary(summary, materialTopic) {
+  const parts = [`Hadir ${summary.present}`];
+  if (summary.permission > 0) parts.push(`Izin ${summary.permission}`);
+  if (summary.sick > 0) parts.push(`Sakit ${summary.sick}`);
+  if (summary.absent > 0) parts.push(`Alpha ${summary.absent}`);
+
+  let text = parts.join(", ");
+  if (materialTopic) {
+    const MAX_LEN = 40;
+    const snippet =
+      materialTopic.length > MAX_LEN ? `${materialTopic.slice(0, MAX_LEN).trim()}…` : materialTopic;
+    text += ` · Materi: ${snippet}`;
+  }
+  return text;
+}
+
+/* ---------------- Rekap Satu Sesi, Read-Only (MVP 2 Milestone 4.3) ---------------- */
+/* Dibuka dari baris tanggal di tab "Per Kelas" (4.1/4.2). Menampilkan semua
+   siswa di kelas itu beserta status hari itu (getRecordsBySession(), sudah
+   ada) + materi hari itu (materialTopic/materialNote, Milestone 1). Tidak
+   ada tombol ubah status — perubahan status tetap lewat halaman Absensi
+   asli, supaya tidak ada dua tempat yang bisa mengubah data yang sama. */
+
+async function renderSessionRecap(id) {
+  const session = await attendanceRepo.getSessionById(id);
+
+  app.innerHTML = "";
+  app.appendChild(AppBar({ title: "Rekap Sesi" }));
+  app.appendChild(BottomNav({ active: "riwayat" }));
+
+  if (!session) {
+    const main = document.createElement("main");
+    main.innerHTML = `<p class="empty-state">Sesi tidak ditemukan.</p>`;
+    app.appendChild(main);
+    return;
+  }
+
+  const cls = await classRepo.getById(session.classId);
+  const [students, records] = await Promise.all([
+    studentRepo.getByClass(session.classId),
+    attendanceRepo.getRecordsBySession(session.id),
+  ]);
+
+  const recordByStudent = Object.fromEntries(records.map((r) => [r.studentId, r]));
+  const sortedStudents = [...students].sort((a, b) => a.name.localeCompare(b.name));
+
+  const header = document.createElement("div");
+  header.className = "history-header";
+  header.innerHTML = `
+    <a href="javascript:void(0)" class="session-recap__back">← Kembali</a>
+    <h2>${cls ? escapeHtml(cls.name) : "-"}</h2>
+    <div class="history-header__subtitle">${formatDisplayDate(session.date)}</div>
+  `;
+  header.querySelector(".session-recap__back").addEventListener("click", () => window.history.back());
+  app.appendChild(header);
+
+  const main = document.createElement("main");
+
+  // Materi hari itu (Milestone 1-3), kalau diisi. Materi tetap opsional —
+  // tidak ditampilkan sama sekali kalau kosong.
+  if (session.materialTopic || session.materialNote) {
+    const materialBox = document.createElement("div");
+    materialBox.className = "session-recap-material";
+    materialBox.innerHTML = `
+      ${session.materialTopic ? `<div class="session-recap-material__topic">📘 ${escapeHtml(session.materialTopic)}</div>` : ""}
+      ${session.materialNote ? `<div class="session-recap-material__note">${escapeHtml(session.materialNote)}</div>` : ""}
+    `;
+    main.appendChild(materialBox);
+  }
+
+  const statGrid = document.createElement("div");
+  statGrid.className = "stat-grid";
+  main.appendChild(statGrid);
+  renderStats(statGrid, records);
+
+  const listHeading = document.createElement("h3");
+  listHeading.textContent = "Daftar Siswa";
+  main.appendChild(listHeading);
+
+  if (sortedStudents.length === 0) {
+    const empty = document.createElement("p");
+    empty.className = "empty-state";
+    empty.textContent = "Belum ada data siswa di kelas ini.";
+    main.appendChild(empty);
+  } else {
+    const list = document.createElement("div");
+    list.className = "session-recap-list";
+
+    sortedStudents.forEach((student) => {
+      const record = recordByStudent[student.id];
+      const status = record?.status;
+      const row = document.createElement("div");
+      row.className = `session-recap-row${status ? ` session-recap-row--${status}` : ""}`;
+      row.innerHTML = `
+        <span class="session-recap-row__name">${escapeHtml(student.name)}</span>
+        <span class="session-recap-row__status">${status ? STATUS_LABEL[status] : "-"}</span>
+      `;
+      row.addEventListener("click", () => (window.location.href = `./index.html?studentId=${student.id}`));
+      list.appendChild(row);
+    });
+
+    main.appendChild(list);
+  }
+
   app.appendChild(main);
 }
 
@@ -323,6 +566,7 @@ async function main() {
   try {
     await openDB();
     if (studentId) await renderDetail();
+    else if (sessionId) await renderSessionRecap(sessionId);
     else await renderPicker();
   } catch (err) {
     console.error(err);
