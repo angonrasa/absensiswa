@@ -37,7 +37,10 @@
 }
 .wizard-skip {
   font-size: var(--text-sm);
-  color: var(--color-ink-faint);
+  /* R11.1 fix: "Lewati" is a genuine interactive control (exits the wizard
+     entirely), not decorative text — ink-faint (2.6:1) failed AA. Matched
+     to .wizard-back's existing ink-muted (4.6:1) for visual consistency. */
+  color: var(--color-ink-muted);
 }
 
 .wizard-progress {

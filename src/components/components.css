@@ -173,13 +173,18 @@
   transition: background var(--duration-fast) var(--easing-standard);
 }
 .navitem svg {
-  stroke: var(--color-ink-faint);
+  /* R11.1 fix: ink-faint (2.6:1) is decorative-only per tokens.css R1.4 note,
+     but these icons carry real navigational meaning (inactive tab state) —
+     use ink-muted (4.6:1) so they clear the 3:1 non-text-contrast threshold. */
+  stroke: var(--color-ink-muted);
   transition: stroke var(--duration-fast) var(--easing-standard);
 }
 .navitem .label {
   font-size: 10px;
   font-weight: var(--weight-bold);
-  color: var(--color-ink-faint);
+  /* R11.1 fix: tab labels ("Beranda", "Riwayat", dst.) are required-reading
+     text, not decoration — ink-faint (2.6:1) failed AA. ink-muted = 4.6:1. */
+  color: var(--color-ink-muted);
 }
 .navitem.is-active .icon-wrap { background: var(--color-accent-tint); }
 .navitem.is-active svg { stroke: var(--color-accent); }

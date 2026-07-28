@@ -31,7 +31,9 @@
 }
 .schedule-time__end {
   font-size: var(--text-xs);
-  color: var(--color-ink-faint);
+  /* R11.1 fix: end time is real schedule data guru needs to read, not
+     decoration — ink-faint (2.6:1) failed AA. ink-muted = 4.6:1. */
+  color: var(--color-ink-muted);
   font-weight: var(--weight-regular);
 }
 

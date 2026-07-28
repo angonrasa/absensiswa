@@ -85,7 +85,7 @@
 .schedule-day-heading:first-of-type { margin-top: 0; }
 
 .schedule-day-empty {
-  color: var(--color-ink-faint);
+  color: var(--color-ink-muted);
   font-size: var(--text-sm);
   margin: 0 0 var(--space-2);
 }

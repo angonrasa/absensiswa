@@ -7,6 +7,9 @@ import { SettingsRepository } from "../../src/modules/settings/settings.reposito
 import { computeSetupChecklist, isSetupComplete } from "../../src/core/setupChecklist.js";
 import { showLoading, showError } from "../../src/core/pageState.js";
 import { escapeHtml } from "../../src/core/html.js";
+import { buildClassFields } from "../../src/core/class-fields.js";
+import { buildScheduleFields } from "../../src/core/schedule-fields.js";
+import { parseBulkStudentLines } from "../../src/core/student-bulk-parser.js";
 import { Button, Input, Select } from "../../src/components/components.js";
 
 const DAYS = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu"];
@@ -83,43 +86,13 @@ async function ensureActiveAcademicYear() {
   return created;
 }
 
-/* ---------------- Helper form (duplikasi kecil dari master-data.js —
-   fungsi privat, tidak diekspor dari sana, jadi diduplikasi persis
-   supaya perilaku bulk-add identik). ---------------- */
-
-function nextNis(current) {
-  if (!/^\d+$/.test(current)) return "";
-  const next = (BigInt(current) + 1n).toString();
-  return next.padStart(current.length, "0");
-}
-
-function parseGenderToken(token) {
-  const t = (token || "").trim().toUpperCase();
-  return t === "L" || t === "P" ? t : null;
-}
-
-function mostCommonSubject(schedules) {
-  if (!schedules || schedules.length === 0) return "";
-  const counts = {};
-  schedules.forEach((s) => {
-    counts[s.subject] = (counts[s.subject] || 0) + 1;
-  });
-  return Object.entries(counts).sort((a, b) => b[1] - a[1])[0][0];
-}
-
 /* ---------------- Step 1: Kelas (R9.2) ---------------- */
 
 async function buildStepClass() {
   const container = document.createElement("div");
   const years = await academicYearRepo.getAll();
 
-  const nameInput = Input({ label: "Nama Kelas", placeholder: "cth. 7A" });
-  const gradeInput = Input({ label: "Tingkat", type: "number", placeholder: "cth. 7" });
-  const yearSelect = Select({
-    label: "Tahun Ajaran",
-    value: years.find((y) => y.isActive)?.id || years[0]?.id || "",
-    options: years.map((y) => ({ value: y.id, label: y.name })),
-  });
+  const { nameInput, gradeInput, yearSelect, getValue, validate } = buildClassFields(years);
 
   container.appendChild(nameInput);
   container.appendChild(gradeInput);
@@ -135,15 +108,13 @@ async function buildStepClass() {
     variant: "secondary",
     block: true,
     onClick: async () => {
-      const name = nameInput.inputEl.value.trim();
-      const grade = Number(gradeInput.inputEl.value);
-      const academicYearId = yearSelect.selectEl.value;
-      if (!name || !academicYearId) {
+      if (!validate()) {
         errorEl.textContent = "Isi nama kelas terlebih dahulu.";
         errorEl.style.display = "block";
         return;
       }
       errorEl.style.display = "none";
+      const { name, grade, academicYearId } = getValue();
       const created = await classRepo.create({ name, grade, academicYearId });
       lastAddedClassId = created.id;
       nameInput.inputEl.value = "";
@@ -260,30 +231,12 @@ async function buildStepStudent() {
       }
       errorEl.style.display = "none";
 
-      let autoNis = nisStartInput.inputEl.value.trim();
+      const autoNis = nisStartInput.inputEl.value.trim();
       const defaultGender = genderDefaultSelect.selectEl.value;
+      const parsed = parseBulkStudentLines(textarea.value, { defaultGender, nisStart: autoNis });
 
-      for (const line of lines) {
-        const parts = line.split(",").map((p) => p.trim());
-        const name = parts[0] || "";
-        if (!name) continue;
-
-        let rest = parts.slice(1);
-        let gender = defaultGender;
-        if (rest.length > 0) {
-          const lastToken = parseGenderToken(rest[rest.length - 1]);
-          if (lastToken) {
-            gender = lastToken;
-            rest = rest.slice(0, -1);
-          }
-        }
-        let nis = rest[0] || "";
-        if (!nis && autoNis) {
-          nis = autoNis;
-          autoNis = nextNis(autoNis);
-        }
-
-        await studentRepo.create({ classId, nis, name, gender });
+      for (const student of parsed) {
+        await studentRepo.create({ classId, ...student });
       }
 
       textarea.value = "";
@@ -333,33 +286,14 @@ async function buildStepSchedule() {
 
   const allSchedules = (await Promise.all(classes.map((c) => scheduleRepo.getByClass(c.id)))).flat();
 
-  const subjectInput = Input({ label: "Mata Pelajaran", value: mostCommonSubject(allSchedules) });
-  const subjectOptions = [...new Set(allSchedules.map((s) => s.subject).filter(Boolean))];
-  if (subjectOptions.length > 0) {
-    const datalist = document.createElement("datalist");
-    datalist.id = "wizard-subject-suggestions";
-    subjectOptions.forEach((subj) => {
-      const opt = document.createElement("option");
-      opt.value = subj;
-      datalist.appendChild(opt);
-    });
-    subjectInput.appendChild(datalist);
-    subjectInput.inputEl.setAttribute("list", "wizard-subject-suggestions");
-  }
+  const { subjectInput, classSelect, daySelect, startInput, endInput, getValue, validate } = buildScheduleFields(
+    classes,
+    allSchedules,
+    { defaultClassId: lastAddedClassId }
+  );
   container.appendChild(subjectInput);
-
-  const classSelect = Select({
-    label: "Kelas",
-    value: lastAddedClassId && classes.some((c) => c.id === lastAddedClassId) ? lastAddedClassId : classes[0].id,
-    options: classes.map((c) => ({ value: c.id, label: c.name })),
-  });
   container.appendChild(classSelect);
-
-  const daySelect = Select({ label: "Hari", value: DAYS[0], options: DAYS.map((d) => ({ value: d, label: d })) });
   container.appendChild(daySelect);
-
-  const startInput = Input({ label: "Jam Mulai", type: "time", value: "07:00" });
-  const endInput = Input({ label: "Jam Selesai", type: "time", value: "08:00" });
   container.appendChild(startInput);
   container.appendChild(endInput);
 
@@ -373,17 +307,13 @@ async function buildStepSchedule() {
     variant: "secondary",
     block: true,
     onClick: async () => {
-      const subject = subjectInput.inputEl.value.trim();
-      const classId = classSelect.selectEl.value;
-      const day = daySelect.selectEl.value;
-      const startTime = startInput.inputEl.value;
-      const endTime = endInput.inputEl.value;
-      if (!subject || !classId || !startTime || !endTime) {
+      if (!validate()) {
         errorEl.textContent = "Lengkapi semua field jadwal.";
         errorEl.style.display = "block";
         return;
       }
       errorEl.style.display = "none";
+      const { subject, classId, day, startTime, endTime } = getValue();
       await scheduleRepo.create({ subject, classId, day, startTime, endTime });
       await refreshChips();
     },

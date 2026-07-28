@@ -49,7 +49,9 @@
 .about-credit {
   text-align: center;
   font-size: var(--text-xs);
-  color: var(--color-ink-faint);
+  /* R11.1 fix: credit line is readable copy, not decoration — ink-faint
+     (2.6:1) failed AA. ink-muted = 4.6:1. */
+  color: var(--color-ink-muted);
   font-weight: var(--weight-medium);
   margin-top: var(--space-6);
   padding: 0 var(--space-2);
