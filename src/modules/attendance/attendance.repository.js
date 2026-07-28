@@ -26,6 +26,27 @@ export class AttendanceRepository {
     );
   }
 
+  /**
+   * Beberapa materialTopic terakhir (tidak kosong) dari sesi-sesi kelas yang
+   * sama — dipakai sebagai default/saran input materi (MVP 2 Milestone 2).
+   * Bukan tabel baru, hanya query ke AttendanceSession yang sudah ada.
+   */
+  async getRecentMaterialTopics(classId, limit = 5) {
+    const sessions = await withStore(STORE.ATTENDANCE_SESSION, "readonly", (store) =>
+      requestToPromise(store.index("classId").getAll(classId))
+    );
+    return AttendanceRepository.pickRecentTopics(sessions, limit);
+  }
+
+  /** Pilih materialTopic terbaru dulu, buang yang kosong. Fungsi murni, tanpa akses DB. */
+  static pickRecentTopics(sessions, limit = 5) {
+    return sessions
+      .filter((s) => s.materialTopic)
+      .sort((a, b) => b.date.localeCompare(a.date))
+      .slice(0, limit)
+      .map((s) => s.materialTopic);
+  }
+
   async getRecordsBySession(sessionId) {
     return withStore(STORE.ATTENDANCE_RECORD, "readonly", (store) =>
       requestToPromise(store.index("attendanceSessionId").getAll(sessionId))
@@ -42,10 +63,19 @@ export class AttendanceRepository {
   /**
    * Simpan absensi satu kelas untuk satu tanggal.
    * statusByStudentId: { [studentId]: "present" | "permission" | "sick" | "absent" }
+   * materialTopic/materialNote: opsional (MVP 2 Milestone 1) — materi yang
+   * diajarkan pada sesi ini. Tidak boleh memblokir simpan absensi kalau kosong.
    * Mengikuti alur di 03-Algoritma-Pendamping.md: buat/ update session,
    * lalu buat/ update record untuk setiap siswa.
    */
-  async saveAttendance({ classId, scheduleId, date = toDateKey(), statusByStudentId }) {
+  async saveAttendance({
+    classId,
+    scheduleId,
+    date = toDateKey(),
+    statusByStudentId,
+    materialTopic = "",
+    materialNote = "",
+  }) {
     let session = await this.findSession(classId, date);
     const now = new Date().toISOString();
 
@@ -56,12 +86,14 @@ export class AttendanceRepository {
         classId,
         date,
         status: "completed",
+        materialTopic,
+        materialNote,
         createdAt: now,
         updatedAt: now,
       };
       await withStore(STORE.ATTENDANCE_SESSION, "readwrite", (store) => store.add(session));
     } else {
-      session = { ...session, status: "completed", updatedAt: now };
+      session = { ...session, status: "completed", materialTopic, materialNote, updatedAt: now };
       await withStore(STORE.ATTENDANCE_SESSION, "readwrite", (store) => store.put(session));
     }
 

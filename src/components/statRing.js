@@ -41,7 +41,7 @@ function StatMini({ value, label, variant }) {
   return card;
 }
 
-function StatHero(percent) {
+function StatHero(percent, belumAdaSesi) {
   const hasPercent = percent !== null && percent !== undefined && !Number.isNaN(percent);
   const pctValue = hasPercent ? Math.round(percent) : 0;
 
@@ -70,7 +70,9 @@ function StatHero(percent) {
 
   const cap = document.createElement("div");
   cap.className = "stat-hero__cap";
-  cap.textContent = "% Kehadiran";
+  // Hotfix 1.0.1 — Isu 1: bedakan "belum ada absensi hari ini" dari hasil
+  // 0%, supaya tidak terbaca seperti data hilang saat ganti hari.
+  cap.textContent = belumAdaSesi ? "Belum ada absensi hari ini" : "% Kehadiran";
   hero.appendChild(cap);
 
   return hero;
@@ -92,9 +94,18 @@ export function StatCardGroup({ percent = null, hadirHariIni = 0, tidakHadir = 0
   const grid = document.createElement("div");
   grid.className = "stats";
 
-  grid.appendChild(StatHero(percent));
-  grid.appendChild(StatMini({ value: hadirHariIni, label: "Hadir Hari Ini", variant: "hadir" }));
-  grid.appendChild(StatMini({ value: tidakHadir, label: "Tidak Hadir", variant: "absen" }));
+  // Hotfix 1.0.1 — Isu 1: percent null berarti belum ada satu sesi pun
+  // tercatat hari ini (bukan "0% kehadiran"). Kartu Hadir/Tidak Hadir ikut
+  // menampilkan "–" di kondisi ini, supaya tidak terbaca sebagai kehadiran
+  // nol orang. "Total Siswa" tidak terpengaruh — itu jumlah siswa
+  // terdaftar, selalu valid berapa pun harinya.
+  const belumAdaSesi = percent === null || percent === undefined;
+
+  grid.appendChild(StatHero(percent, belumAdaSesi));
+  grid.appendChild(
+    StatMini({ value: belumAdaSesi ? "–" : hadirHariIni, label: "Hadir Hari Ini", variant: "hadir" })
+  );
+  grid.appendChild(StatMini({ value: belumAdaSesi ? "–" : tidakHadir, label: "Tidak Hadir", variant: "absen" }));
 
   const totalCard = StatMini({ value: totalSiswa, label: "Total Siswa" });
   totalCard.style.gridColumn = "2 / 4";

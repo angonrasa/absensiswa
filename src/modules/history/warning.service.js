@@ -24,14 +24,38 @@ function countInMonth(timeline, status, referenceDate) {
   return timeline.filter((entry) => entry.status === status && entry.date.slice(0, 7) === targetMonth).length;
 }
 
+// Hotfix 1.0.1 — Isu 2: urutan prioritas saat 1 tanggal punya lebih dari 1
+// entri (kasus 2 sesi dalam 1 hari, mis. 1 JP sebelum istirahat + 2 JP
+// sesudahnya). Paling genting duluan — kalau salah satu sesi hari itu
+// alpha, hari itu dihitung alpha untuk keperluan peringatan dini.
+const DAILY_STATUS_PRIORITY = ["absent", "sick", "permission", "present"];
+
+/**
+ * Kelompokkan timeline per-tanggal supaya 1 hari dengan lebih dari 1 sesi
+ * (kelas yang jadwalnya dipecah sebelum/sesudah istirahat) tetap dihitung
+ * sebagai 1 hari saat menghitung streak/bulanan — bukan 2. Tanggal dengan
+ * 1 entri (mayoritas kasus) tidak berubah sama sekali.
+ */
+function collapseByDate(timeline) {
+  const byDate = new Map();
+  for (const entry of timeline) {
+    const existing = byDate.get(entry.date);
+    if (!existing || DAILY_STATUS_PRIORITY.indexOf(entry.status) < DAILY_STATUS_PRIORITY.indexOf(existing.status)) {
+      byDate.set(entry.date, entry);
+    }
+  }
+  return [...byDate.values()].sort((a, b) => a.date.localeCompare(b.date));
+}
+
 /**
  * Hitung peringatan dini dari timeline satu siswa (terurut tanggal, ascending).
  * Mengembalikan array warning; kosong berarti tidak ada peringatan.
  */
 export function computeWarnings(timeline, referenceDate = new Date()) {
   const warnings = [];
+  const dailyTimeline = collapseByDate(timeline);
 
-  const consecutiveAlpha = countConsecutiveFromEnd(timeline, "absent");
+  const consecutiveAlpha = countConsecutiveFromEnd(dailyTimeline, "absent");
   if (consecutiveAlpha >= WARNING_THRESHOLD.ALPHA_CONSECUTIVE) {
     warnings.push({
       type: "alpha_consecutive",
@@ -39,7 +63,7 @@ export function computeWarnings(timeline, referenceDate = new Date()) {
     });
   }
 
-  const monthlyAlpha = countInMonth(timeline, "absent", referenceDate);
+  const monthlyAlpha = countInMonth(dailyTimeline, "absent", referenceDate);
   if (monthlyAlpha >= WARNING_THRESHOLD.ALPHA_MONTHLY) {
     warnings.push({
       type: "alpha_monthly",
@@ -47,7 +71,7 @@ export function computeWarnings(timeline, referenceDate = new Date()) {
     });
   }
 
-  const monthlySick = countInMonth(timeline, "sick", referenceDate);
+  const monthlySick = countInMonth(dailyTimeline, "sick", referenceDate);
   if (monthlySick >= WARNING_THRESHOLD.SICK_MONTHLY) {
     warnings.push({
       type: "sick_monthly",

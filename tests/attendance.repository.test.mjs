@@ -35,3 +35,36 @@ test("buildSummary dengan daftar kosong menghasilkan nol semua", () => {
     absent: 0,
   });
 });
+
+test("pickRecentTopics: urutan terbaru dulu, tidak menyertakan yang kosong", () => {
+  const sessions = [
+    { date: "2026-07-20", materialTopic: "Hukum I Newton" },
+    { date: "2026-07-25", materialTopic: "" },
+    { date: "2026-07-27", materialTopic: "Hukum II Newton" },
+    { date: "2026-07-22", materialTopic: null },
+    { date: "2026-07-15", materialTopic: "Pengukuran" },
+  ];
+
+  assert.deepEqual(AttendanceRepository.pickRecentTopics(sessions, 5), [
+    "Hukum II Newton",
+    "Hukum I Newton",
+    "Pengukuran",
+  ]);
+});
+
+test("pickRecentTopics: menghormati parameter limit", () => {
+  const sessions = [
+    { date: "2026-07-27", materialTopic: "Materi C" },
+    { date: "2026-07-25", materialTopic: "Materi B" },
+    { date: "2026-07-20", materialTopic: "Materi A" },
+  ];
+
+  assert.deepEqual(AttendanceRepository.pickRecentTopics(sessions, 2), [
+    "Materi C",
+    "Materi B",
+  ]);
+});
+
+test("pickRecentTopics: daftar kosong menghasilkan array kosong", () => {
+  assert.deepEqual(AttendanceRepository.pickRecentTopics([], 5), []);
+});

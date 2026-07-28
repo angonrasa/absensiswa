@@ -4,10 +4,12 @@ import { runPage } from "../../src/components/pageState.js";
 
 const app = document.getElementById("app");
 
-// R6.2 — versi ditulis manual di sini (halaman statis murni, tidak ada
-// sumber versi terpusat lain di aplikasi ini). Perbarui nilai ini saat
-// versi MVP berganti.
-const APP_VERSION = "MVP 1.0";
+// Versi ditulis manual di sini (halaman statis murni, tidak ada sumber versi
+// terpusat lain di aplikasi ini). Perbarui nilai ini setiap rilis publik baru.
+// Catatan: ini TIDAK terkait dengan DB_VERSION di src/database/db.js —
+// itu murni internal IndexedDB (naik hanya kalau ada store/index baru),
+// sedangkan ini adalah nomor versi yang dilihat guru.
+const APP_VERSION = "1.0.1";
 
 function render() {
   app.innerHTML = "";
