@@ -6,7 +6,7 @@ import {
   validateBackup,
 } from "../../src/modules/backup/backup.service.js";
 import { AppBar, BottomNav, Button, Modal, MenuGroup, MenuRow, showToast } from "../../src/components/components.js";
-import { runPage } from "../../src/core/pageState.js";
+import { runPage } from "../../src/components/pageState.js";
 import { renderOrphanCleanupGroup } from "../../src/core/orphanCleanupUI.js";
 
 const app = document.getElementById("app");

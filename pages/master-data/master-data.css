@@ -62,12 +62,6 @@
 }
 .icon-btn:hover { background: var(--color-border); }
 
-.empty-state {
-  text-align: center;
-  padding: var(--space-10) var(--space-4);
-  color: var(--color-ink-muted);
-}
-
 .sheet-form {
   display: flex;
   flex-direction: column;

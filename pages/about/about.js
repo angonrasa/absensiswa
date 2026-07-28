@@ -1,6 +1,6 @@
 import { openDB } from "../../src/database/db.js";
 import { AppBar, BottomNav } from "../../src/components/components.js";
-import { runPage } from "../../src/core/pageState.js";
+import { runPage } from "../../src/components/pageState.js";
 
 const app = document.getElementById("app");
 

@@ -4,7 +4,7 @@ import { StudentRepository } from "../../src/modules/student/student.repository.
 import { ScheduleRepository } from "../../src/modules/schedule/schedule.repository.js";
 import { SettingsRepository } from "../../src/modules/settings/settings.repository.js";
 import { computeSetupChecklist } from "../../src/core/setupChecklist.js";
-import { runPage } from "../../src/core/pageState.js";
+import { runPage } from "../../src/components/pageState.js";
 
 const classRepo = new ClassRepository();
 const studentRepo = new StudentRepository();

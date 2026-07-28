@@ -4,7 +4,7 @@ import { ClassRepository } from "../../src/modules/class/class.repository.js";
 import { StudentRepository } from "../../src/modules/student/student.repository.js";
 import { ScheduleRepository } from "../../src/modules/schedule/schedule.repository.js";
 import { AttendanceRepository } from "../../src/modules/attendance/attendance.repository.js";
-import { showLoading, showError } from "../../src/core/pageState.js";
+import { showLoading, showError } from "../../src/components/pageState.js";
 import {
   AppBar,
   BottomNav,

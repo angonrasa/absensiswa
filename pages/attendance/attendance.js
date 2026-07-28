@@ -5,7 +5,7 @@ import { ScheduleRepository } from "../../src/modules/schedule/schedule.reposito
 import { AttendanceRepository } from "../../src/modules/attendance/attendance.repository.js";
 import { toDateKey, formatDisplayDate } from "../../src/core/date.js";
 import { AppBar, Button } from "../../src/components/components.js";
-import { showLoading, showError } from "../../src/core/pageState.js";
+import { showLoading, showError } from "../../src/components/pageState.js";
 import { escapeHtml } from "../../src/core/html.js";
 
 const studentRepo = new StudentRepository();
@@ -154,7 +154,7 @@ async function render() {
   const main = document.createElement("main");
 
   if (students.length === 0) {
-    main.innerHTML = `<p style="text-align:center;color:var(--color-ink-muted);padding:var(--space-10) 0;">Belum ada data siswa.</p>`;
+    main.innerHTML = `<p class="empty-state">Belum ada data siswa.</p>`;
     app.appendChild(main);
     return;
   }

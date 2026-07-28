@@ -4,8 +4,9 @@ import { ClassRepository } from "../../src/modules/class/class.repository.js";
 import { AttendanceRepository } from "../../src/modules/attendance/attendance.repository.js";
 import { formatDisplayDate } from "../../src/core/date.js";
 import { computeWarnings } from "../../src/modules/history/warning.service.js";
+import { filterTimeline } from "../../src/modules/history/history.service.js";
 import { AppBar, BottomNav, Button, Card, Input, Modal, Select, showToast } from "../../src/components/components.js";
-import { showLoading, showError } from "../../src/core/pageState.js";
+import { showLoading, showError } from "../../src/components/pageState.js";
 import { escapeHtml } from "../../src/core/html.js";
 
 const studentRepo = new StudentRepository();
@@ -32,7 +33,7 @@ async function renderPicker() {
   const allStudents = (await Promise.all(classes.map((c) => studentRepo.getByClass(c.id)))).flat();
 
   if (allStudents.length === 0) {
-    main.innerHTML = `<p style="text-align:center;color:var(--color-ink-muted);padding:var(--space-10) 0;">Belum ada data siswa.</p>`;
+    main.innerHTML = `<p class="empty-state">Belum ada data siswa.</p>`;
     app.appendChild(main);
     return;
   }
@@ -74,7 +75,7 @@ async function renderPicker() {
     listContainer.innerHTML = "";
 
     if (filtered.length === 0) {
-      listContainer.innerHTML = `<p style="text-align:center;color:var(--color-ink-muted);padding:var(--space-6) 0;">Siswa tidak ditemukan.</p>`;
+      listContainer.innerHTML = `<p class="empty-state">Siswa tidak ditemukan.</p>`;
       return;
     }
 
@@ -106,14 +107,6 @@ async function renderPicker() {
 
 /* ---------------- Detail Siswa ---------------- */
 
-function filterTimeline(timeline, startDate, endDate) {
-  return timeline.filter((entry) => {
-    if (startDate && entry.date < startDate) return false;
-    if (endDate && entry.date > endDate) return false;
-    return true;
-  });
-}
-
 function renderStats(container, entries) {
   container.innerHTML = "";
   const summary = attendanceRepo.buildSummary(entries);
@@ -130,7 +123,7 @@ function renderTimelineList(container, entries, { selectionMode, selectedIds, on
   container.innerHTML = "";
 
   if (entries.length === 0) {
-    container.innerHTML = `<p style="color:var(--color-ink-muted);padding:var(--space-6) 0;text-align:center;">Tidak ada riwayat pada rentang tanggal ini.</p>`;
+    container.innerHTML = `<p class="empty-state">Tidak ada riwayat pada rentang tanggal ini.</p>`;
     return;
   }
 

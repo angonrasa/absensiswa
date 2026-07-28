@@ -307,3 +307,13 @@
 .menu-row--danger { color: var(--color-danger); }
 .menu-row--danger .menu-row__icon { background: var(--color-absent-tint); }
 .menu-row--danger .menu-row__sub { color: var(--color-danger); }
+
+/* ================= Empty State (Milestone 0.5.1) =================
+   Satu pola empty-state resmi, dipakai lintas halaman (Data Master, Absensi,
+   Riwayat) — sebelumnya class ini hanya didefinisikan lokal di
+   master-data.css, dan 2 halaman lain memakai inline style terpisah. */
+.empty-state {
+  text-align: center;
+  padding: var(--space-10) var(--space-4);
+  color: var(--color-ink-muted);
+}

@@ -5,12 +5,13 @@ import { StudentRepository } from "../../src/modules/student/student.repository.
 import { ScheduleRepository } from "../../src/modules/schedule/schedule.repository.js";
 import { SettingsRepository } from "../../src/modules/settings/settings.repository.js";
 import { computeSetupChecklist, isSetupComplete } from "../../src/core/setupChecklist.js";
-import { showLoading, showError } from "../../src/core/pageState.js";
+import { showLoading, showError } from "../../src/components/pageState.js";
 import { escapeHtml } from "../../src/core/html.js";
 import { buildClassFields } from "../../src/core/class-fields.js";
 import { buildScheduleFields } from "../../src/core/schedule-fields.js";
+import { buildStudentBulkFields } from "../../src/core/student-bulk-fields.js";
 import { parseBulkStudentLines } from "../../src/core/student-bulk-parser.js";
-import { Button, Input, Select } from "../../src/components/components.js";
+import { Button } from "../../src/components/components.js";
 
 const DAYS = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu"];
 
@@ -170,37 +171,11 @@ async function buildStepStudent() {
     return container;
   }
 
-  const classSelect = Select({
-    label: "Kelas",
-    value: lastAddedClassId && classes.some((c) => c.id === lastAddedClassId) ? lastAddedClassId : classes[0].id,
-    options: classes.map((c) => ({ value: c.id, label: c.name })),
-  });
+  const { classSelect, genderDefaultSelect, nisStartInput, textareaWrap, textarea, getLines } =
+    buildStudentBulkFields(classes, { defaultClassId: lastAddedClassId });
   container.appendChild(classSelect);
-
-  const genderDefaultSelect = Select({
-    label: "Jenis Kelamin Default",
-    value: "L",
-    options: [
-      { value: "L", label: "Laki-laki" },
-      { value: "P", label: "Perempuan" },
-    ],
-  });
   container.appendChild(genderDefaultSelect);
-
-  const nisStartInput = Input({ label: "NIS Awal (opsional)", placeholder: "contoh: 2026001" });
   container.appendChild(nisStartInput);
-
-  const textareaWrap = document.createElement("div");
-  textareaWrap.className = "field";
-  const textareaLabel = document.createElement("label");
-  textareaLabel.className = "field__label";
-  textareaLabel.textContent = "Daftar Siswa (satu nama per baris)";
-  const textarea = document.createElement("textarea");
-  textarea.className = "field__input";
-  textarea.rows = 6;
-  textarea.placeholder = "Andi\nBudi, P\nCitra, 2026099, P";
-  textareaWrap.appendChild(textareaLabel);
-  textareaWrap.appendChild(textarea);
   container.appendChild(textareaWrap);
 
   const hint = document.createElement("div");
@@ -219,10 +194,7 @@ async function buildStepStudent() {
     block: true,
     onClick: async () => {
       const classId = classSelect.selectEl.value;
-      const lines = textarea.value
-        .split("\n")
-        .map((line) => line.trim())
-        .filter((line) => line.length > 0);
+      const lines = getLines();
 
       if (!classId || lines.length === 0) {
         errorEl.textContent = "Pilih kelas dan isi minimal satu nama siswa.";
