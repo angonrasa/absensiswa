@@ -75,6 +75,36 @@ export function confirmDelete(message, doDelete) {
   document.body.appendChild(modal);
 }
 
+// MVP 2 Milestone 5.2 — versi jamak dari confirmDelete, dipakai tombol
+// "Hapus Terpilih" di ketiga tab. Pola sama persis (modal konfirmasi lalu
+// toast + undo, aksi hapus sesungguhnya baru jalan saat toast commit),
+// supaya guru tetap punya kesempatan membatalkan seperti hapus satuan.
+export function confirmBulkDelete(count, doDeleteAll) {
+  const modal = Modal({
+    title: "Hapus Data",
+    body: `${count} item terpilih akan dihapus. Lanjutkan?`,
+    actions: [
+      Button({ label: "Batal", variant: "secondary", onClick: () => modal.close() }),
+      Button({
+        label: "Hapus",
+        variant: "danger",
+        onClick: () => {
+          modal.close();
+          showToast({
+            message: `${count} item dihapus.`,
+            undoLabel: "Urungkan",
+            onCommit: async () => {
+              await doDeleteAll();
+              renderTabContent();
+            },
+          });
+        },
+      }),
+    ],
+  });
+  document.body.appendChild(modal);
+}
+
 export function emptyState(text) {
   const el = document.createElement("div");
   el.className = "empty-state";
@@ -89,6 +119,55 @@ export function iconButton(icon, label, onClick) {
   btn.textContent = icon;
   btn.addEventListener("click", onClick);
   return btn;
+}
+
+// MVP 2 Milestone 5.1 — Mode pilih (selection mode) di Data Master.
+// Pola yang sama dengan selectionMode di pages/history/history.js
+// (dipakai untuk bulk-delete riwayat), dipakai ulang di sini supaya
+// ketiga tab (Kelas/Siswa/Jadwal) tidak menulis logika checkbox sendiri-sendiri.
+//
+// mainHtml   : HTML string untuk isi utama baris (judul + subjudul), sama
+//              seperti yang selama ini langsung ditaruh di row.innerHTML.
+// selectionMode : boolean, apakah mode pilih sedang aktif.
+// selected      : boolean, apakah baris ini sedang dicentang.
+// onToggle      : dipanggil saat baris/checkbox di-tap.
+// actionsEl     : elemen aksi (Edit/Hapus) — disembunyikan saat mode pilih aktif,
+//                 supaya tidak ada aksi ganda (checkbox vs icon hapus) pada baris yang sama.
+export function selectableRow(mainHtml, { selectionMode, selected, onToggle, actionsEl }) {
+  const row = document.createElement("div");
+  row.className = "list-row";
+  if (selectionMode) row.classList.add("list-row--selectable");
+
+  if (selectionMode) {
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.className = "list-row__checkbox";
+    checkbox.checked = !!selected;
+    checkbox.addEventListener("change", () => onToggle());
+    row.appendChild(checkbox);
+    row.addEventListener("click", (e) => {
+      if (e.target !== checkbox) {
+        checkbox.checked = !checkbox.checked;
+        onToggle();
+      }
+    });
+  }
+
+  const mainWrap = document.createElement("div");
+  mainWrap.innerHTML = mainHtml;
+  row.appendChild(mainWrap.firstElementChild);
+
+  if (!selectionMode && actionsEl) row.appendChild(actionsEl);
+
+  return row;
+}
+
+// Tombol "Pilih" / "Batal Pilih" yang dipakai di header tiap tab. State
+// selectionMode tetap disimpan lokal di tiap tab (bukan disatukan di sini)
+// supaya Kelas/Siswa/Jadwal tetap independen sesuai Agents-rules.md
+// ("Keep modules independent").
+export function selectToggleButton(onClick) {
+  return Button({ label: "Pilih", variant: "secondary", onClick });
 }
 
 /* ---------------- Shell ---------------- */

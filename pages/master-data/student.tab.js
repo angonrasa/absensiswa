@@ -4,12 +4,15 @@ import { Button, Card, Input, Select } from "../../src/components/components.js"
 import {
   openSheet,
   confirmDelete,
+  confirmBulkDelete,
   emptyState,
   iconButton,
   renderTabContent,
   classRepo,
   studentRepo,
   attendanceRepo,
+  selectableRow,
+  selectToggleButton,
 } from "./master-data.js";
 import { openBulkStudentForm } from "./student-bulk.tab.js";
 
@@ -72,6 +75,46 @@ export async function renderStudentTab(container) {
   filterBar.appendChild(classFilter);
   container.appendChild(filterBar);
 
+  // MVP 2 Milestone 5.1/5.2 — mode pilih + hapus massal: tombol "Pilih"
+  // menampilkan checkbox di tiap baris, "Hapus Terpilih" muncul setelah
+  // minimal 1 siswa dicentang dan menghapus lewat studentRepo.remove() yang
+  // sudah ada (dipanggil per-id dalam satu aksi).
+  let selectionMode = false;
+  const selectedIds = new Set();
+
+  const toolbar = document.createElement("div");
+  toolbar.className = "selection-toolbar";
+
+  const selectToggleBtn = selectToggleButton(() => {
+    selectionMode = !selectionMode;
+    selectedIds.clear();
+    updateToolbar();
+    renderStudentList();
+  });
+  toolbar.appendChild(selectToggleBtn);
+
+  const bulkDeleteBtn = Button({
+    label: "Hapus Terpilih",
+    variant: "danger",
+    onClick: () => {
+      if (selectedIds.size === 0) return;
+      confirmBulkDelete(selectedIds.size, async () => {
+        await Promise.all([...selectedIds].map((id) => studentRepo.remove(id)));
+      });
+    },
+  });
+  bulkDeleteBtn.style.display = "none";
+  toolbar.appendChild(bulkDeleteBtn);
+
+  container.appendChild(toolbar);
+
+  function updateToolbar() {
+    selectToggleBtn.textContent = selectionMode ? "Batal Pilih" : "Pilih";
+    bulkDeleteBtn.style.display = selectionMode ? "inline-flex" : "none";
+    bulkDeleteBtn.textContent = `Hapus Terpilih (${selectedIds.size})`;
+    bulkDeleteBtn.disabled = selectedIds.size === 0;
+  }
+
   const listContainer = document.createElement("div");
   container.appendChild(listContainer);
 
@@ -99,9 +142,7 @@ export async function renderStudentTab(container) {
     list.className = "list";
 
     filtered.forEach((student) => {
-      const row = document.createElement("div");
-      row.className = "list-row";
-      row.innerHTML = `<div class="list-row__main">
+      const mainHtml = `<div class="list-row__main">
         <span class="list-row__title">${escapeHtml(student.name)} <span class="student-warning-flag" data-student="${student.id}"></span></span>
         <span class="list-row__subtitle">NIS ${escapeHtml(student.nis)} · ${escapeHtml(classById[student.classId]?.name || "-")}</span>
       </div>`;
@@ -119,7 +160,17 @@ export async function renderStudentTab(container) {
           confirmDelete(`Hapus siswa "${student.name}"? Riwayat kehadiran tetap tersimpan.`, () => studentRepo.remove(student.id))
         )
       );
-      row.appendChild(actions);
+
+      const row = selectableRow(mainHtml, {
+        selectionMode,
+        selected: selectedIds.has(student.id),
+        onToggle: () => {
+          if (selectedIds.has(student.id)) selectedIds.delete(student.id);
+          else selectedIds.add(student.id);
+          updateToolbar();
+        },
+        actionsEl: actions,
+      });
 
       list.appendChild(Card({ content: row }));
     });
@@ -148,6 +199,7 @@ export async function renderStudentTab(container) {
     renderStudentList();
   });
 
+  updateToolbar();
   renderStudentList();
 }
 
