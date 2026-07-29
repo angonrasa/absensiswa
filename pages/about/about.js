@@ -9,7 +9,7 @@ const app = document.getElementById("app");
 // Catatan: ini TIDAK terkait dengan DB_VERSION di src/database/db.js —
 // itu murni internal IndexedDB (naik hanya kalau ada store/index baru),
 // sedangkan ini adalah nomor versi yang dilihat guru.
-const APP_VERSION = "1.0.1";
+const APP_VERSION = "1.1.0";
 
 function render() {
   app.innerHTML = "";
@@ -41,7 +41,7 @@ function render() {
       </svg>
     </div>
     <h3 class="about-hero__title">Teacher Attendance Companion</h3>
-    <span class="about-hero__version">${APP_VERSION}</span>
+    <span class="about-hero__version">Versi ${APP_VERSION}</span>
   `;
   main.appendChild(hero);
 
