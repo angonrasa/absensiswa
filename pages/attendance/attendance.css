@@ -169,3 +169,39 @@
 }
 .result-summary__value { font-size: var(--text-xl); font-weight: var(--weight-bold); display: block; }
 .result-summary__label { font-size: var(--text-xs); color: var(--color-ink-muted); }
+
+/* Indikator autosave — MVP 2 Milestone 8.6. Silent, tidak menyela (tidak ada
+   overlay/backdrop seperti .modal-overlay), sekadar reassurance kecil di
+   atas footer sticky. aria-live="polite" di elemen (lihat attendance.render.js)
+   supaya screen reader mengumumkan tanpa menyela alur. */
+.autosave-indicator {
+  position: fixed;
+  left: 50%;
+  bottom: calc(88px + env(safe-area-inset-bottom, 0px));
+  transform: translate(-50%, 8px);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-full);
+  background: var(--color-ink);
+  color: #fff;
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  box-shadow: var(--elevation-2, var(--elevation-1));
+  opacity: 0;
+  pointer-events: none;
+  z-index: 60; /* di atas appbar (10) & footer, di bawah modal/sheet (100) */
+  transition: opacity var(--duration-normal) var(--easing-standard),
+              transform var(--duration-normal) var(--easing-standard);
+}
+.autosave-indicator.is-visible {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+.autosave-indicator__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-present);
+}

@@ -79,6 +79,10 @@ export class AttendanceRepository {
    * statusByStudentId: { [studentId]: "present" | "permission" | "sick" | "absent" }
    * materialTopic/materialNote: opsional (MVP 2 Milestone 1) — materi yang
    * diajarkan pada sesi ini. Tidak boleh memblokir simpan absensi kalau kosong.
+   * sessionStatus: "completed" (default, tombol Simpan) atau "draft" (MVP 2
+   * Milestone 8.3 — autosave). Field ini sudah ada di data model sejak awal
+   * (02-Data-Model-Pendamping.md); sebelum Milestone 8 selalu di-hardcode
+   * "completed" karena draft belum pernah dipakai.
    * Mengikuti alur di 03-Algoritma-Pendamping.md: buat/ update session,
    * lalu buat/ update record untuk setiap siswa.
    */
@@ -89,6 +93,7 @@ export class AttendanceRepository {
     statusByStudentId,
     materialTopic = "",
     materialNote = "",
+    sessionStatus = "completed",
   }) {
     let session = await this.findSession(classId, date);
     const now = new Date().toISOString();
@@ -99,7 +104,7 @@ export class AttendanceRepository {
         scheduleId,
         classId,
         date,
-        status: "completed",
+        status: sessionStatus,
         materialTopic,
         materialNote,
         createdAt: now,
@@ -107,7 +112,7 @@ export class AttendanceRepository {
       };
       await withStore(STORE.ATTENDANCE_SESSION, "readwrite", (store) => store.add(session));
     } else {
-      session = { ...session, status: "completed", materialTopic, materialNote, updatedAt: now };
+      session = { ...session, status: sessionStatus, materialTopic, materialNote, updatedAt: now };
       await withStore(STORE.ATTENDANCE_SESSION, "readwrite", (store) => store.put(session));
     }
 
