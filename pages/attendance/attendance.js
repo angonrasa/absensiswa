@@ -18,6 +18,12 @@
  * pagehide/visibilitychange yang lama tetap ada sebagai jaring pengaman
  * untuk celah waktu di antaranya (bukan diganti, cuma tidak lagi jadi
  * satu-satunya jalur).
+ *
+ * Penyempurnaan (audit 2026-07-29, P0 09-UX-Roadmap.md "Auto Save
+ * Perubahan"): `scheduleAutosave()` beserta timer debounce-nya dipindah ke
+ * attendance.autosave.js (diekspor dari sana) supaya bisa diuji unit —
+ * sebelumnya definisi lokal di file ini tidak punya cakupan test sama
+ * sekali walau jadi jalur autosave utama. Tidak ada perubahan perilaku.
  */
 
 import { openDB } from "../../src/database/db.js";
@@ -29,7 +35,7 @@ import { runAutoBackupIfDue } from "../../src/modules/backup/backup.service.js";
 import { toDateKey } from "../../src/core/date.js";
 import { showLoading, showError } from "../../src/components/pageState.js";
 import { state, markAsSaved } from "./attendance.state.js";
-import { initAutosave, autosaveDraft } from "./attendance.autosave.js";
+import { initAutosave, scheduleAutosave, cancelScheduledAutosave } from "./attendance.autosave.js";
 import { renderMissingParam, renderResult, render, showAutosaveIndicator } from "./attendance.render.js";
 
 const studentRepo = new StudentRepository();
@@ -44,22 +50,8 @@ const classId = params.get("classId");
 const scheduleId = params.get("scheduleId");
 const dateKey = toDateKey();
 
-// Hotfix pasca-8.7 — lihat catatan di header file. 600ms dipilih supaya
-// tidak menulis ke IndexedDB di setiap tap (guru bisa tap banyak siswa
-// berturut-turut), tapi cukup singkat untuk sudah selesai tersimpan jauh
-// sebelum guru realistis sempat menekan tombol Back setelah tap terakhir.
-const AUTOSAVE_DEBOUNCE_MS = 600;
-let autosaveDebounceTimer = null;
-
-function scheduleAutosave() {
-  clearTimeout(autosaveDebounceTimer);
-  autosaveDebounceTimer = setTimeout(() => {
-    autosaveDraft();
-  }, AUTOSAVE_DEBOUNCE_MS);
-}
-
 async function handleSave() {
-  clearTimeout(autosaveDebounceTimer); // hindari autosaveDraft() menyusul setelah Simpan ditekan
+  cancelScheduledAutosave(); // hindari autosaveDraft() menyusul setelah Simpan ditekan
   const saveBtn = document.getElementById("save-btn");
   saveBtn.disabled = true;
   saveBtn.textContent = "Menyimpan...";

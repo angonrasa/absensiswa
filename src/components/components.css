@@ -81,6 +81,16 @@
 .badge--absent    { background: var(--color-absent-tint);    color: var(--color-absent); }
 .badge--neutral   { background: var(--color-surface-sunken); color: var(--color-ink-muted); }
 
+/* Penyempurnaan (audit 2026-07-29, P0 09-UX-Roadmap.md / MVP2 Milestone 8) —
+   badge "Belum Dikonfirmasi" untuk sesi berstatus draft (autosave, belum
+   ditekan Simpan) di Riwayat per Kelas. Sengaja pakai token netral (ink-muted
+   / surface-sunken), BUKAN salah satu token status kehadiran (present/
+   permission/sick/absent) — badge ini menandakan status SESI (administratif),
+   bukan status kehadiran siswa. Kalau dipakai token warna status (mis.
+   --color-permission, yang artinya sudah "dipatenkan" = Izin), guru bisa
+   salah baca badge ini seolah ada siswa izin, padahal bukan. */
+.badge--draft     { background: var(--color-surface-sunken); color: var(--color-ink-muted); }
+
 /* ================= App Bar ================= */
 .appbar {
   position: sticky;

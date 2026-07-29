@@ -1,13 +1,24 @@
 /**
- * Service Module — Autosave Absensi (MVP2 Milestone 8.3 & 8.4)
+ * Service Module — Autosave Absensi (MVP2 Milestone 8.3 & 8.4 + hotfix
+ * pasca-8.7 + penyempurnaan P0 09-UX-Roadmap.md "Auto Save Perubahan")
  *
  * Tanggung jawab tunggal: menyimpan draft ke database saat guru meninggalkan
- * halaman Absensi atau app di-background, TANPA menyentuh DOM (itu tanggung
- * jawab attendance.js). Membaca/menandai state lewat attendance.state.js dan
+ * halaman Absensi, app di-background, atau beberapa saat setelah tap/input
+ * terakhir (debounce) — TANPA menyentuh DOM (itu tanggung jawab
+ * attendance.js). Membaca/menandai state lewat attendance.state.js dan
  * menulis lewat AttendanceRepository yang di-inject dari luar (initAutosave),
  * bukan diimpor/dibuat sendiri — modul ini tidak tahu apa pun soal jadwal
  * URL/DOM. Sesuai Agents-rules: "Pisahkan antara core, service dan ui, jangan
  * dicampur dalam satu file."
+ *
+ * Penyempurnaan (audit 2026-07-29): `scheduleAutosave()` sebelumnya
+ * didefinisikan lokal & tidak diekspor di attendance.js (hotfix pasca-8.7),
+ * sehingga mekanisme debounce yang jadi jalur autosave UTAMA sekarang
+ * ("Perubahan status disimpan otomatis" — P0 09-UX-Roadmap.md) tidak punya
+ * cakupan unit test sama sekali. Dipindah ke sini, diekspor, mengikuti pola
+ * `autosaveDraft`/`initAutosave` yang sudah ada — tidak ada perubahan
+ * perilaku, murni pemindahan lokasi kode + kemampuan diuji. Lihat
+ * `tests/attendance.autosave.test.mjs` untuk pengujiannya.
  */
 
 import { state, markAsSaved } from "./attendance.state.js";
@@ -15,6 +26,13 @@ import { state, markAsSaved } from "./attendance.state.js";
 let attendanceRepo = null;
 let pageConfig = null; // { classId, scheduleId, dateKey }
 let onAutosaved = null; // MVP2 Milestone 8.6 — callback opsional, DOM-free di sini
+
+// Hotfix pasca-8.7 (dipindah dari attendance.js, lihat catatan di atas) — 600ms
+// dipilih supaya tidak menulis ke IndexedDB di setiap tap (guru bisa tap banyak
+// siswa berturut-turut), tapi cukup singkat untuk sudah selesai tersimpan jauh
+// sebelum guru realistis sempat menekan tombol Back setelah tap terakhir.
+const AUTOSAVE_DEBOUNCE_MS = 600;
+let debounceTimer = null;
 
 /**
  * Autosave sebagai draft (BUKAN completed), dipicu saat guru meninggalkan
@@ -52,6 +70,30 @@ export async function autosaveDraft() {
   } catch (err) {
     console.error("Autosave draft gagal:", err);
   }
+}
+
+/**
+ * Jadwalkan autosaveDraft() beberapa saat (AUTOSAVE_DEBOUNCE_MS) setelah
+ * tap/input terakhir — dipanggil dari attendance.render.js (lewat callback
+ * `onStateChange` yang di-set di attendance.js) setiap ada perubahan status
+ * satu siswa atau input materi. Timer sebelumnya dibatalkan setiap dipanggil
+ * ulang, jadi tap beruntun tidak menumpuk banyak penyimpanan — hanya satu
+ * autosaveDraft() yang jalan setelah tap benar-benar berhenti.
+ */
+export function scheduleAutosave() {
+  clearTimeout(debounceTimer);
+  debounceTimer = setTimeout(() => {
+    autosaveDraft();
+  }, AUTOSAVE_DEBOUNCE_MS);
+}
+
+/**
+ * Batalkan autosave yang sedang terjadwal (dipanggil dari handleSave di
+ * attendance.js SEBELUM menyimpan sebagai "completed") — mencegah
+ * autosaveDraft() menyusul menulis "draft" setelah tombol Simpan ditekan.
+ */
+export function cancelScheduledAutosave() {
+  clearTimeout(debounceTimer);
 }
 
 /**

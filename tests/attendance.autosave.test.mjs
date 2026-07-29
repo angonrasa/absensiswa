@@ -1,7 +1,12 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { state, updateDirtyState } from "../pages/attendance/attendance.state.js";
-import { autosaveDraft, initAutosave } from "../pages/attendance/attendance.autosave.js";
+import {
+  autosaveDraft,
+  initAutosave,
+  scheduleAutosave,
+  cancelScheduledAutosave,
+} from "../pages/attendance/attendance.autosave.js";
 
 /**
  * Ini menguji `autosaveDraft()` sebagai unit murni: `AttendanceRepository`
@@ -15,6 +20,12 @@ import { autosaveDraft, initAutosave } from "../pages/attendance/attendance.auto
  * halaman Absensi dan melihat status draft ikut termuat, atau menekan
  * tombol Simpan sungguhan) TIDAK diuji di sini — lihat
  * docs/manual-test-milestone8.md untuk checklist manualnya.
+ *
+ * Penyempurnaan (audit 2026-07-29, P0 09-UX-Roadmap.md): tes untuk
+ * `scheduleAutosave()`/`cancelScheduledAutosave()` ditambahkan di bagian
+ * bawah file ini. Sengaja pakai `setTimeout` sungguhan (bukan fake timer)
+ * supaya tidak menambah dependency baru — total waktu tes ini di bawah 2
+ * detik, cukup singkat untuk `node --test`.
  */
 
 function resetState() {
@@ -151,4 +162,64 @@ test("autosaveDraft: kalau repo gagal, tidak melempar error, state TETAP dirty, 
 
   assert.equal(state.isDirty, true, "tap status guru tidak boleh dianggap tersimpan kalau gagal");
   assert.equal(onAutosavedCalls, 0);
+});
+
+function wait(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+test("scheduleAutosave: TIDAK memanggil repo seketika, baru setelah debounce (~600ms) berlalu", async () => {
+  resetState();
+  state.students = [{ id: "s1" }];
+  state.statusByStudentId = { s1: "sick" };
+  state.savedStatusByStudentId = { s1: "present" };
+  updateDirtyState();
+
+  const repo = createMockRepo();
+  initAutosave({ repo, classId: "class-7a", scheduleId: "sch-1", dateKey: "2026-07-29" });
+
+  scheduleAutosave();
+  await wait(300);
+  assert.equal(repo.calls.length, 0, "belum boleh tersimpan sebelum debounce selesai");
+
+  await wait(450); // total ~750ms sejak scheduleAutosave(), lewat 600ms
+  assert.equal(repo.calls.length, 1);
+  assert.equal(repo.calls[0].sessionStatus, "draft");
+});
+
+test("scheduleAutosave: tap berturut-turut mereset timer, tidak menumpuk beberapa kali simpan", async () => {
+  resetState();
+  state.students = [{ id: "s1" }];
+  state.statusByStudentId = { s1: "sick" };
+  state.savedStatusByStudentId = { s1: "present" };
+  updateDirtyState();
+
+  const repo = createMockRepo();
+  initAutosave({ repo, classId: "class-7a", scheduleId: "sch-1", dateKey: "2026-07-29" });
+
+  scheduleAutosave();
+  await wait(300);
+  scheduleAutosave(); // guru tap lagi sebelum 600ms pertama habis -> timer reset
+  await wait(300);
+  assert.equal(repo.calls.length, 0, "timer harus reset, belum 600ms sejak tap kedua");
+
+  await wait(400); // total ~700ms sejak tap KEDUA
+  assert.equal(repo.calls.length, 1, "hanya satu kali simpan walau ada 2 tap");
+});
+
+test("cancelScheduledAutosave: mencegah autosaveDraft terpanggil (dipakai handleSave sebelum tombol Simpan)", async () => {
+  resetState();
+  state.students = [{ id: "s1" }];
+  state.statusByStudentId = { s1: "sick" };
+  state.savedStatusByStudentId = { s1: "present" };
+  updateDirtyState();
+
+  const repo = createMockRepo();
+  initAutosave({ repo, classId: "class-7a", scheduleId: "sch-1", dateKey: "2026-07-29" });
+
+  scheduleAutosave();
+  cancelScheduledAutosave();
+  await wait(700);
+
+  assert.equal(repo.calls.length, 0, "autosave draft tidak boleh menyusul setelah dibatalkan");
 });

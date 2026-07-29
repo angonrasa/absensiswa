@@ -211,11 +211,20 @@ function renderClassSessionPicker(container, classes) {
       const summary = attendanceRepo.buildSummary(recordsBySession[idx]);
       const summaryText = formatSessionRowSummary(summary, session.materialTopic);
 
+      // MVP2 Milestone 8 ("Keputusan yang Diambil", 07-Roadmap-MVP2.md):
+      // sesi berstatus draft (autosave, belum ditekan Simpan) dihitung SAMA
+      // seperti completed di statistik/riwayat — badge ini murni informasi
+      // tambahan, tidak mengubah summaryText/summary di atas sama sekali.
+      const draftBadge = session.status === "draft"
+        ? `<span class="badge badge--draft" title="Sesi ini belum ditekan Simpan — status masih tersimpan otomatis (draft)">Belum Dikonfirmasi</span>`
+        : "";
+
       const row = document.createElement("div");
       row.className = "class-session-row class-session-row--pressable";
       row.innerHTML = `
         <span class="class-session-row__main">
           <span class="class-session-row__date">${formatDisplayDate(session.date)}</span>
+          ${draftBadge}
           <span class="class-session-row__summary">${escapeHtml(summaryText)}</span>
         </span>
         <span class="class-session-row__chevron" aria-hidden="true">›</span>
@@ -264,12 +273,20 @@ async function renderSessionRecap(id) {
   const recordByStudent = Object.fromEntries(records.map((r) => [r.studentId, r]));
   const sortedStudents = [...students].sort((a, b) => a.name.localeCompare(b.name));
 
+  // MVP2 Milestone 8 ("Keputusan yang Diambil") — lihat catatan yang sama
+  // di renderClassSessionPicker() di atas: badge murni informasi, sesi
+  // draft tetap dihitung sama seperti completed di statGrid di bawah.
+  const draftBadge = session.status === "draft"
+    ? `<span class="badge badge--draft" title="Sesi ini belum ditekan Simpan — status masih tersimpan otomatis (draft)">Belum Dikonfirmasi</span>`
+    : "";
+
   const header = document.createElement("div");
   header.className = "history-header";
   header.innerHTML = `
     <a href="javascript:void(0)" class="session-recap__back">← Kembali</a>
     <h2>${cls ? escapeHtml(cls.name) : "-"}</h2>
     <div class="history-header__subtitle">${formatDisplayDate(session.date)}</div>
+    ${draftBadge}
   `;
   header.querySelector(".session-recap__back").addEventListener("click", () => window.history.back());
   app.appendChild(header);
