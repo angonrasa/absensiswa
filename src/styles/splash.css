@@ -1,0 +1,147 @@
+/*
+  src/styles/splash.css
+
+  PENTING: file ini di-link global (bareng tokens.css/base.css) di setiap
+  index.html, BUKAN cuma untuk halaman yang punya splash. Karena itu semua
+  selector di sini WAJIB discope di bawah #splash — jangan pernah nulis
+  `body{...}` atau `*{...}` di file ini, itu bakal nimpa seluruh app.
+*/
+
+:root{
+  /* Warna logo, sengaja BUKAN dari tokens.css — ini identitas mark yang
+     tetap, bukan warna status/aksi UI. Kalau tokens.css berubah, ini tidak
+     ikut berubah. */
+  --logo-dot: #4CB53C;
+}
+
+#splash{
+  position:fixed;
+  inset:0;
+  z-index:9999;
+  background:var(--color-primary);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  overflow:hidden;
+  font-family:var(--font-display);
+}
+
+#splash .stage{
+  position:relative;
+  width:100%; max-width:430px; height:100%; max-height:932px;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+}
+
+#splash .mark{
+  width:38vmin; height:auto; max-width:180px;
+  display:block;
+}
+
+/* --- goresan (stroke) : digambar dulu sebagai garis, baru terisi ---
+   Default TERSEMBUNYI TOTAL (opacity:0). Animasi baru dipasang di bawah
+   #splash.is-ready — class ini cuma ditambahkan JS (primeInkPath) SETELAH
+   panjang path asli (getTotalLength) selesai dihitung dan dipasang.
+   Jangan kasih stroke-dasharray/dashoffset default di sini lagi: nilai
+   placeholder apa pun akan sempat kelihatan sebelum JS menimpanya —
+   itu penyebab logo "kelihatan duluan baru digambar ulang". */
+#splash .ink{
+  fill:var(--color-surface);
+  fill-opacity:0;
+  stroke:var(--color-surface);
+  stroke-width:6;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+  opacity:0;
+}
+
+#splash.is-ready .ink{
+  opacity:1;
+  animation:
+    splash-draw 900ms cubic-bezier(.65,0,.35,1) 200ms forwards,
+    splash-fillIn 420ms var(--easing-standard) 980ms forwards;
+}
+
+#splash .dot{
+  transform-origin:328.10px 346.36px;
+  transform:scale(0);
+  opacity:0;
+}
+#splash.is-ready .dot{
+  animation: splash-popDot 620ms cubic-bezier(.34,1.56,.64,1) 1200ms forwards;
+}
+
+@keyframes splash-draw{
+  to{ stroke-dashoffset:0; }
+}
+@keyframes splash-fillIn{
+  to{ fill-opacity:1; stroke-width:0; }
+}
+@keyframes splash-popDot{
+  0%{ transform:scale(0); opacity:0; }
+  60%{ transform:scale(1.18); opacity:1; }
+  100%{ transform:scale(1); opacity:1; }
+}
+
+#splash .wordmark{
+  margin-top:var(--space-6);
+  font-size: clamp(26px, 7vmin, 34px);
+  font-weight:600;
+  letter-spacing:-0.5px;
+  color:var(--color-surface);
+  opacity:0;
+  transform:translateY(10px);
+}
+#splash.is-ready .wordmark{
+  animation: splash-riseInFull 560ms var(--easing-standard) 1500ms forwards;
+}
+
+#splash .tagline{
+  margin-top:var(--space-2);
+  font-size:0.875rem;
+  font-weight:400;
+  letter-spacing:.2px;
+  color:var(--color-surface);
+  opacity:0;
+  transform:translateY(8px);
+}
+#splash.is-ready .tagline{
+  animation: splash-riseIn 520ms var(--easing-standard) 1720ms forwards;
+}
+
+@keyframes splash-riseIn{
+  to{ opacity:.68; transform:translateY(0); }
+}
+@keyframes splash-riseInFull{
+  to{ opacity:1; transform:translateY(0); }
+}
+
+#splash .pulse{
+  margin-top:var(--space-6);
+  width:6px; height:6px;
+  border-radius:50%;
+  background:var(--color-surface);
+  opacity:0;
+}
+#splash.is-ready .pulse{
+  animation:
+    splash-pulseIn 400ms ease-out 2000ms forwards,
+    splash-breathe 1100ms ease-in-out 2000ms infinite;
+}
+@keyframes splash-pulseIn{ to{ opacity:.5; } }
+@keyframes splash-breathe{
+  0%,100%{ opacity:.35; transform:scale(1); }
+  50%{ opacity:.75; transform:scale(1.4); }
+}
+
+@media (prefers-reduced-motion: reduce){
+  #splash .ink,
+  #splash .dot,
+  #splash .wordmark,
+  #splash .tagline,
+  #splash .pulse{ animation:none !important; }
+  #splash .ink{ fill-opacity:1; stroke-width:0; }
+  #splash .dot{ transform:scale(1); opacity:1; }
+  #splash .wordmark{ opacity:1; transform:none; }
+  #splash .tagline,
+  #splash .pulse{ opacity:.68; transform:none; }
+}

@@ -1,3 +1,4 @@
+import { primeInkPath, hideSplash } from "../../src/core/splash.js";
 import { openDB } from "../../src/database/db.js";
 import { ScheduleRepository } from "../../src/modules/schedule/schedule.repository.js";
 import { ClassRepository } from "../../src/modules/class/class.repository.js";
@@ -395,6 +396,12 @@ async function render() {
 }
 
 async function main() {
+  // Waktu mulai diukur dari sini, bukan dari boot terpisah — supaya animasi
+  // splash (target minimal 1800ms biar goresan+dot sempat kelar) dihitung
+  // dari proses booting yang SUNGGUHAN, bukan alur bayangan yang terpisah.
+  primeInkPath();
+  const splashStart = performance.now();
+
   await openDB();
 
   // R7.2 / R8.4 — migrasi pengguna lama & routing awal app. Dihitung dari
@@ -407,13 +414,24 @@ async function main() {
   await settingsRepo.migrateIfNeeded({ classCount, studentCount, scheduleCount });
 
   const config = await settingsRepo.getConfig();
+  const minSplashTime = 2600; // ms — urutan animasi (goresan → dot → wordmark → tagline) baru kelar ±2240ms, ditambah sedikit jeda biar sempat "dibaca", bukan langsung kepotong
 
   if (!config.hasSeenOnboarding) {
-    window.location.href = "../welcome/index.html";
+    // Splash tetap harus sempat kelihatan sebelum pindah halaman — kalau
+    // langsung redirect di sini, animasi goresan/dot belum sempat jalan
+    // sama sekali untuk pengguna baru (yang justru paling sering lewat
+    // jalur ini, karena datanya masih kosong).
+    const elapsed = performance.now() - splashStart;
+    setTimeout(() => {
+      window.location.href = "../welcome/index.html";
+    }, Math.max(0, minSplashTime - elapsed));
     return;
   }
 
   await runPage(app, render);
+
+  const elapsed = performance.now() - splashStart;
+  setTimeout(hideSplash, Math.max(0, minSplashTime - elapsed));
 }
 
 main();
