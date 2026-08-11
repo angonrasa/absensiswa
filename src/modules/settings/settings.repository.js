@@ -17,7 +17,16 @@ export function defaultConfig() {
   return {
     id: CONFIG_ID,
     hasSeenOnboarding: false,
-    autoBackupEnabled: true, // MVP2 M7.1 — default aktif untuk pengguna baru
+    // MVP2 M7.1 — awalnya default AKTIF untuk pengguna baru. Diubah jadi
+    // NONAKTIF setelah dipakai nyata beberapa minggu: menulis file ke
+    // Download/absensiswa setiap hari tanpa guru minta terasa mengganggu.
+    // Guru tetap tidak dibiarkan lupa backup — checkBackupReminder() di
+    // backup.service.js (M7.5) sudah menangani kondisi autoBackupEnabled
+    // === false: banner peringatan otomatis muncul di Beranda begitu sudah
+    // >= 3 hari absensi berjalan tanpa backup, dengan tombol "Backup
+    // Sekarang". Guru yang tetap mau otomatis penuh masih bisa nyalakan
+    // toggle-nya sendiri lewat Pengaturan (setAutoBackupEnabled).
+    autoBackupEnabled: false,
     lastBackupAt: null, // MVP2 M7.1 — null = belum pernah backup sama sekali
   };
 }
