@@ -396,10 +396,21 @@ async function render() {
 }
 
 async function main() {
+  // Opsi 2 — flag ini di-set sinkron oleh inline script di index.html
+  // (dijalankan sebelum home.js ini bahkan dimuat), berdasarkan
+  // sessionStorage: true hanya untuk pembukaan app yang benar-benar baru
+  // (tab/sesi baru), false kalau ini cuma navigasi internal balik ke
+  // Beranda (mis. tap Bottom Nav dari halaman lain). Splash sendiri sudah
+  // disembunyikan sinkron oleh inline script itu kalau isFreshOpen===false,
+  // jadi di sini kita tinggal skip semua animasi/delay yang berkaitan.
+  const isFreshOpen = window.__isFreshOpen !== false;
+
   // Waktu mulai diukur dari sini, bukan dari boot terpisah — supaya animasi
   // splash (target minimal 1800ms biar goresan+dot sempat kelar) dihitung
   // dari proses booting yang SUNGGUHAN, bukan alur bayangan yang terpisah.
-  primeInkPath();
+  if (isFreshOpen) {
+    primeInkPath();
+  }
   const splashStart = performance.now();
 
   await openDB();
@@ -417,21 +428,31 @@ async function main() {
   const minSplashTime = 2600; // ms — urutan animasi (goresan → dot → wordmark → tagline) baru kelar ±2240ms, ditambah sedikit jeda biar sempat "dibaca", bukan langsung kepotong
 
   if (!config.hasSeenOnboarding) {
-    // Splash tetap harus sempat kelihatan sebelum pindah halaman — kalau
-    // langsung redirect di sini, animasi goresan/dot belum sempat jalan
-    // sama sekali untuk pengguna baru (yang justru paling sering lewat
-    // jalur ini, karena datanya masih kosong).
-    const elapsed = performance.now() - splashStart;
-    setTimeout(() => {
+    if (isFreshOpen) {
+      // Splash tetap harus sempat kelihatan sebelum pindah halaman — kalau
+      // langsung redirect di sini, animasi goresan/dot belum sempat jalan
+      // sama sekali untuk pengguna baru (yang justru paling sering lewat
+      // jalur ini, karena datanya masih kosong).
+      const elapsed = performance.now() - splashStart;
+      setTimeout(() => {
+        window.location.href = "../welcome/index.html";
+      }, Math.max(0, minSplashTime - elapsed));
+    } else {
+      // Bukan pembukaan baru (splash sudah disembunyikan sinkron di
+      // index.html) — langsung pindah tanpa delay buatan.
       window.location.href = "../welcome/index.html";
-    }, Math.max(0, minSplashTime - elapsed));
+    }
     return;
   }
 
   await runPage(app, render);
 
-  const elapsed = performance.now() - splashStart;
-  setTimeout(hideSplash, Math.max(0, minSplashTime - elapsed));
+  if (isFreshOpen) {
+    const elapsed = performance.now() - splashStart;
+    setTimeout(hideSplash, Math.max(0, minSplashTime - elapsed));
+  }
+  // Bukan fresh open → splash sudah display:none dari awal (inline script),
+  // tidak perlu hideSplash()/delay apa pun di sini.
 }
 
 main();
